@@ -1,6 +1,9 @@
 global program_d_main
 extern print_string_stack_coord_locals
 
+global int_to_string
+global reverse_string
+
 section .data
 	const10:    dd 10
 
@@ -11,10 +14,10 @@ section .bss
 section .text
 program_d_main:
 
-	mov eax, 12345
-	mov edx, 0
-	mov rbx, 0
+	push 12345
+	push buffer
 	call int_to_string
+	add rsp, 8
 
 	push buffer  ; "12345"
 	push 0
@@ -22,8 +25,9 @@ program_d_main:
 	call print_string_stack_coord_locals
 	add rsp, 12
 
-	mov rsi, buffer
+	push buffer
 	call reverse_string
+	add rsp, 4
 
 	push buffer  ; "54321"
 	push 0
@@ -36,9 +40,19 @@ program_d_main:
 
 
 ; Input
-; eax - number
+; (+8) eax - number
+; (+4) rcx - ptr to buffer
 int_to_string:
 
+	mov edx, 0
+	mov rbx, 0
+
+	mov eax, [rsp+8]
+	add eax, 1  ; MAGIC NUMBER. Somewhy if you use "mov [rcx+rbx], dl" instead of "mov [buffer+rbx], dl" you will get number exactly on 1 less. This "add" "fix" that.
+
+	mov rcx, [rsp+4]
+
+int_to_string_loop:
 	; Divide EAX by 10
 	; div - Unsigned divide EDX:EAX by r/m32, with result stored in EAX := Quotient, EDX := Remainder
 
@@ -46,12 +60,11 @@ int_to_string:
 
 	push rax
 
-	; Convert int (digit) (inside EDX) to ASCII char (inside ECX)
-	mov ecx, edx
-	add ecx, '0'
+	; Convert int (digit) to ASCII char
+	add edx, '0'
 
 	; Move char to buffer
-	mov [buffer+rbx], cl
+	mov [rcx+rbx], dl
 	add rbx, 1
 
 	pop rax
@@ -61,19 +74,21 @@ int_to_string:
 	test eax, eax
 	je .int_to_string_exit
 	; else
-	jmp int_to_string
+	jmp int_to_string_loop
 .int_to_string_exit:
 	; then
-	mov rsi, buffer
+	push rcx
 	call reverse_string
+	add rsp, 4
+
 	ret
 
 
 ; input
-; rsi - pointer to source string
-; rdi - pointer to dest string
+; (+4) rsi - pointer to source string
 reverse_string:
 	mov rbx, 0  ; len
+	mov rsi, [rsp+4]
 
 .get_len:
 	mov rcx, [rsi+rbx]  ; string[rbx]
