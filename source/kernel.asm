@@ -7,7 +7,7 @@ extern program_с_main
 extern program_с_a_main
 
 _start:
-	call program_с_main
+	call program_с_a_main
 	jmp halt
 
 halt:
