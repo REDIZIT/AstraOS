@@ -3,9 +3,12 @@ extern print_string_stack_coord_locals
 
 global int_to_string
 global reverse_string
+global hex_to_string
 
 section .data
 	const10:    dd 10
+	const16:    dd 16
+	hex_digits dd '0123456789ABCDEF'
 
 section .bss
 	buffer resb 32
@@ -134,4 +137,54 @@ reverse_string:
 	jmp .while
 .end:
 	; break
+	ret
+
+
+; Input
+; (+8) eax - number
+; (+4) rcx - ptr to buffer
+hex_to_string:
+	; eax - number
+	; rcx - pointer
+	; edx - remainder
+	; rbx - 
+
+	mov edx, 0
+	mov rbx, 0
+
+	mov eax, [rsp+8]
+	add eax, 1  ; MAGIC NUMBER. Somewhy if you use "mov [rcx+rbx], dl" instead of "mov [buffer+rbx], dl" you will get number exactly on 1 less. This "add" "fix" that.
+
+	mov rcx, [rsp+4]
+
+hex_to_string_loop:
+	div dword [const16]
+
+	push rax
+
+	; Convert int (digit) to ASCII char via hex_digits string
+	mov dl, [hex_digits+rdx]
+
+
+	; Move char to buffer
+	mov byte [rcx+rbx], dl
+	add rbx, 1
+
+	pop rax
+	mov rdx, 0
+
+	; if remainder - EDX == 0: quit, else: recursive
+	test eax, eax
+	je .hex_to_string_exit
+	; else
+	jmp hex_to_string_loop
+.hex_to_string_exit:
+	; then
+
+	mov word [rcx+rbx], "x0"
+
+	push rcx
+	call reverse_string
+	add rsp, 4
+
 	ret
