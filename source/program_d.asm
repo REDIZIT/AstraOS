@@ -3,9 +3,11 @@ extern print_string_stack_coord_locals
 
 global int_to_string
 global reverse_string
-global hex_to_string
+global int_to_hex_string
+global int_to_bin_string
 
 section .data
+	const2:     dd 2
 	const10:    dd 10
 	const16:    dd 16
 	hex_digits dd '0123456789ABCDEF'
@@ -143,7 +145,7 @@ reverse_string:
 ; Input
 ; (+8) eax - number
 ; (+4) rcx - ptr to buffer
-hex_to_string:
+int_to_hex_string:
 	; eax - number
 	; rcx - pointer
 	; edx - remainder
@@ -181,8 +183,50 @@ hex_to_string_loop:
 .hex_to_string_exit:
 	; then
 
-	mov word [rcx+rbx], "x0"
+;	mov word [rcx+rbx], "x0"
 
+	push rcx
+	call reverse_string
+	add rsp, 4
+
+	ret
+
+
+; Input
+; (+8) eax - number
+; (+4) rcx - ptr to buffer
+int_to_bin_string:
+
+	mov edx, 0
+	mov rbx, 0
+
+	mov eax, [rsp+8]
+	add eax, 1  ; MAGIC NUMBER. Somewhy if you use "mov [rcx+rbx], dl" instead of "mov [buffer+rbx], dl" you will get number exactly on 1 less. This "add" "fix" that.
+
+	mov rcx, [rsp+4]
+
+int_to_bin_string_loop:
+	div dword [const2]
+
+	push rax
+
+	; Convert int (digit) to ASCII char
+	add edx, '0'
+
+	; Move char to buffer
+	mov [rcx+rbx], dl
+	add rbx, 1
+
+	pop rax
+	mov rdx, 0
+
+	; if remainder - EDX == 0: quit, else: recursive
+	test eax, eax
+	je .int_to_bin_string_exit
+	; else
+	jmp int_to_bin_string_loop
+.int_to_bin_string_exit:
+	; then
 	push rcx
 	call reverse_string
 	add rsp, 4

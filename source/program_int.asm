@@ -1,11 +1,13 @@
 global program_int_main
 extern print_string_stack_coord_locals
 extern int_to_string
-extern hex_to_string
+extern int_to_hex_string
+extern int_to_bin_string
 
 
 section .data
-    msg db "Key pressed:", 0
+    msg_key_pressed db "Key pressed :", 0
+    msg_key_released db "Key released:", 0
     current_line dq 0
 
 section .bbs
@@ -16,18 +18,18 @@ section .text
 
 program_int_main:
 
-	push 0xabcdef
-	push buffer
-	call hex_to_string
-	add rsp, 8
-
-	push buffer
-	push 0
-	push qword [current_line]
-	call print_string_stack_coord_locals
-	add rsp, 12
-
-	ret
+;	push 921
+;	push buffer
+;	call hex_to_string
+;	add rsp, 8
+;
+;	push buffer
+;	push 0
+;	push qword [current_line]
+;	call print_string_stack_coord_locals
+;	add rsp, 12
+;
+;	ret
 
 	; Инициализация клавиатурного контроллера
     ; Переходим в бесконечный цикл, ожидающий нажатия клавиши
@@ -39,7 +41,7 @@ check_key:
     jz check_key               ; Если данных нет, повторяем проверку
 
     ; Если данные доступны, считываем с порта 0x60
-    mov rax, 0
+    ;mov rax, 0
     in al, 0x60                ; Чтение кода клавиши из порта 0x60
     push rax
     call on_any_key_pressed         ; Печатаем сообщение
@@ -50,28 +52,42 @@ check_key:
 
 ; (+4) key_code
 on_any_key_pressed:
-	push msg
+
+	mov byte rdx, [rsp+4]
+
+	test rdx, 0b10000000
+	jz .j_on_key_pressed
+	jmp .j_on_key_released
+
+
+.j_on_key_pressed:
+	push msg_key_pressed
 	push 2
 	push qword [current_line]
 	call print_string_stack_coord_locals
 	add rsp, 12
+	jmp .j_exit
 
-
-	push msg
+.j_on_key_released:
+	;ret
+	push msg_key_released
 	push 2
 	push qword [current_line]
 	call print_string_stack_coord_locals
 	add rsp, 12
+	jmp .j_exit
+
+.j_exit:
 
 	mov byte rdx, [rsp+4]
 
 	push rdx
 	push buffer
-	call hex_to_string
+	call int_to_bin_string
 	add rsp, 8
 
 	push buffer
-	push 15
+	push 16
 	push qword [current_line]
 	call print_string_stack_coord_locals
 	add rsp, 12
