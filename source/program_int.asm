@@ -1,5 +1,6 @@
 global program_int_main
 extern print_string_stack_coord_locals
+extern console_writeline
 extern int_to_string
 extern int_to_hex_string
 extern int_to_bin_string
@@ -8,7 +9,6 @@ extern int_to_bin_string
 section .data
     msg_key_pressed db "Key pressed :", 0
     msg_key_released db "Key released:", 0
-    current_line dq 0
 
 section .bbs
 	buffer resb 32
@@ -17,20 +17,6 @@ section .text
 
 
 program_int_main:
-
-;	push 921
-;	push buffer
-;	call hex_to_string
-;	add rsp, 8
-;
-;	push buffer
-;	push 0
-;	push qword [current_line]
-;	call print_string_stack_coord_locals
-;	add rsp, 12
-;
-;	ret
-
 	; Инициализация клавиатурного контроллера
     ; Переходим в бесконечный цикл, ожидающий нажатия клавиши
 
@@ -62,19 +48,14 @@ on_any_key_pressed:
 
 .j_on_key_pressed:
 	push msg_key_pressed
-	push 2
-	push qword [current_line]
-	call print_string_stack_coord_locals
-	add rsp, 12
+	call console_writeline
+	add rsp, 4
 	jmp .j_exit
 
 .j_on_key_released:
-	;ret
 	push msg_key_released
-	push 2
-	push qword [current_line]
-	call print_string_stack_coord_locals
-	add rsp, 12
+	call console_writeline
+	add rsp, 4
 	jmp .j_exit
 
 .j_exit:
@@ -83,18 +64,11 @@ on_any_key_pressed:
 
 	push rdx
 	push buffer
-	call int_to_bin_string
+	call int_to_hex_string
 	add rsp, 8
 
 	push buffer
-	push 16
-	push qword [current_line]
-	call print_string_stack_coord_locals
-	add rsp, 12
-
-	
-	mov rbx, [current_line]
-	add rbx, 1
-	mov [current_line], rbx
+	call console_writeline
+	add rsp, 4
 
     ret

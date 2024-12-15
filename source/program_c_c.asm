@@ -1,5 +1,6 @@
 global program_с_c_main
 global print_string_stack_coord_locals
+global console_writeline
 
 section .data
 	nums dq 10, 20, 30, 15, 15
@@ -7,8 +8,10 @@ section .data
 	numSize equ 8   ; размер каждого элемента
 	width dq 80
 	width_doubled dq 160
+	height dq 25
 	test_str dd "Hello world"
 	test_str2 dd "Second string"
+	console_current_line dq -1
 
 
 section .text
@@ -60,6 +63,49 @@ write_vga_char:
 	mov byte [rbx+1], 0x0F
 
 	ret
+
+; (+4) pointer to string
+console_writeline:
+	
+
+	mov rax, [console_current_line]
+	cmp rax, 23
+	jl .console_writeline_if_else
+	call vga_scroll_up
+	jmp .console_writeline_if_exit
+.console_writeline_if_else:
+	mov rdx, [console_current_line]
+	add rdx, 1
+	mov [console_current_line], rdx
+.console_writeline_if_exit
+
+	mov rdx, [rsp+4]
+	push rdx
+	push 0
+	push qword [console_current_line]
+	call print_string_stack_coord_locals
+	add rsp, 12
+
+	ret
+
+
+vga_scroll_up:
+    mov rsi, 0xB8000       ; Адрес VGA-буфера в текстовом режиме
+    mov rdi, 0xB8000       ; Указатель на начало буфера, куда копируем
+    add rsi, 160           ; Смещаем rsi на 1 строку (80 символов * 2 байта)
+
+    ; Копируем строки (24 строки вверх, оставляем место для последней строки)
+    mov rcx, (24 * 80)     ; Количество символов в 24 строках
+    rep movsw              ; Копируем слова (2 байта: символ и атрибут)
+
+    ; Заполняем последнюю строку пробелами
+    mov rax, 0x17        ; Пробел с атрибутом (0x07: белый на чёрном фоне)
+    mov rcx, 80            ; Количество символов в строке
+fill_last_line:
+    stosw                  ; Записываем пробел в буфер
+    loop fill_last_line    ; Повторяем для всей строки
+
+    ret
 
 
 ; rsi - pointer to string
