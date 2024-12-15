@@ -11,9 +11,10 @@ extern program_d_main
 extern program_e_main
 extern program_int_main
 extern program_ram_main
+extern program_disks_main
 
 _start:
-	call program_ram_main
+	call program_disks_main
 	jmp halt
 
 halt:
