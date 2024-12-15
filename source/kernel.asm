@@ -10,9 +10,10 @@ extern program_с_c_main
 extern program_d_main
 extern program_e_main
 extern program_int_main
+extern program_ram_main
 
 _start:
-	call program_int_main
+	call program_ram_main
 	jmp halt
 
 halt:
