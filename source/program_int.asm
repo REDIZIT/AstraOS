@@ -7,7 +7,7 @@ extern int_to_bin_string
 
 
 section .data
-    msg_key_pressed db "Key pressed :", 0
+    msg_key_pressed db "Key pressed:", 0
     msg_key_released db "Key released:", 0
 
 section .bbs
@@ -17,23 +17,17 @@ section .text
 
 
 program_int_main:
-	; Инициализация клавиатурного контроллера
-    ; Переходим в бесконечный цикл, ожидающий нажатия клавиши
-
 check_key:
-    ; Проверяем, готов ли клавиатурный контроллер (проверка на доступность данных)
     in al, 0x64                ; Читаем состояние клавиатурного контроллера
     test al, 0x01              ; Проверяем флаг Output Buffer Full (бит 0)
     jz check_key               ; Если данных нет, повторяем проверку
 
     ; Если данные доступны, считываем с порта 0x60
-    ;mov rax, 0
     in al, 0x60                ; Чтение кода клавиши из порта 0x60
     push rax
-    call on_any_key_pressed         ; Печатаем сообщение
+    call on_any_key_pressed 
     add rsp, 4
 
-    ; Возвращаемся к проверке нажатий
     jmp check_key
 
 ; (+4) key_code
