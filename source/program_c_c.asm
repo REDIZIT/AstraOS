@@ -1,6 +1,8 @@
 global program_с_c_main
 global print_string_stack_coord_locals
 global console_writeline
+global slice_buffer
+global reverse_buffer
 
 section .data
 	nums dq 10, 20, 30, 15, 15
@@ -77,7 +79,7 @@ console_writeline:
 	mov rdx, [console_current_line]
 	add rdx, 1
 	mov [console_current_line], rdx
-.console_writeline_if_exit
+.console_writeline_if_exit:
 
 	mov rdx, [rsp+4]
 	push rdx
@@ -221,4 +223,89 @@ print_string_stack_coord_locals:
 	add rdi, 2
 	loop .print_loop
 .done:
+	ret
+
+
+
+; (+16) rsi - pointer to source buffer
+; (+12) rdi - pointer to sliced buffer
+; (+8) rbx - start index
+; (+4) rcx - length
+slice_buffer:
+
+	mov rsi, [rsp+16]
+	mov rdi, [rsp+12]
+	mov rbx, [rsp+8]
+	mov rcx, [rsp+4]
+
+	; Сохранение регистров (если необходимо)
+	push rsi
+	push rbx
+	push rcx
+
+	; Подготовка указателей
+	add rsi, rbx			; Сдвигаем rsi на начальный индекс
+
+	; RCX указывает на количество байт для копирования
+.copy_loop:
+	cmp rcx, 0			; Если длина равна 0, завершаем
+	je .done
+
+	mov al, byte [rsi]		; Читаем байт из исходного буфера
+	mov byte [rdi], al		; Записываем байт в выходной буфер
+
+	inc rsi				; Сдвигаем указатель исходного буфера
+	inc rdi				; Сдвигаем указатель выходного буфера
+	dec rcx				; Уменьшаем длину
+	jmp .copy_loop			; Переходим к следующему байту
+
+.done:
+	; Восстановление регистров
+	pop rcx
+	pop rbx
+	pop rsi
+
+	ret
+
+
+; (+8) pointer to buffer
+; (+4) len
+reverse_buffer:
+
+	mov rsi, [rsp+8]
+	mov rbx, [rsp+4]
+
+.swap:
+	; rax - 
+	; rbx - len => j
+	; rcx - i
+	; rdx - temp
+	; rsi, rdi - pointers
+
+	sub rbx, 1  ; j
+	mov rcx, 0  ; i
+
+	; while (i < j)
+.while:
+	cmp rbx, rcx
+	jng .end  ; if (i < j)
+	; body
+
+	; temp = str[i]
+	mov byte al, [rsi+rcx]
+
+	; str[i] = str[j]
+	mov byte dl, [rsi+rbx]
+	mov byte [rsi+rcx], dl
+
+	; str[j] = temp
+	mov byte [rsi+rbx], al
+
+
+	add rcx, 1
+	sub rbx, 1
+
+	jmp .while
+.end:
+	; break
 	ret
