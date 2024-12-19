@@ -1,6 +1,4 @@
-﻿using System.Net.NetworkInformation;
-
-public abstract class Token
+﻿public abstract class Token
 {
     protected CompilationContext ctx;
 
@@ -19,7 +17,7 @@ public class Token_FunctionDeclaration : Token
 
     public override string Generate()
     {
-        return $"{functionName}:\n";
+        return $"{functionName}:\nmov rbp, rsp\n";
     }
 }
 public class Token_FunctionCall : Token
@@ -113,8 +111,8 @@ public class Token_VariableDeclaration : Token
 
     public override string Generate()
     {
-        string rspIndex = $"[rsp" + (localOffset < 0 ? localOffset : " + " + localOffset) + "]";
-        return $"sub rsp, 4\nmov qword {rspIndex}, 0\n";
+        string rspIndex = ctx.GetRSPIndex(name);
+        return $"sub rsp, 8\nmov qword {rspIndex}, 0\n";
     }
 }
 public class Token_VariableAssign : Token
@@ -124,8 +122,19 @@ public class Token_VariableAssign : Token
 
     public override string Generate()
     {
-        int localOffset = ctx.offsetByVariableName[variableName];
-        string rspIndex = $"[rsp" + (localOffset < 0 ? localOffset : " + " + localOffset) + "]";
+        string rspIndex = ctx.GetRSPIndex(variableName);
         return $"mov qword {rspIndex}, {value}\n";
+    }
+}
+
+public class Token_MathExpression : Token
+{
+    public string expression;
+    public string variableToAssign;
+
+    public override string Generate()
+    {
+        string asm = MathExpressions.Generate(expression, ctx);
+        return $"{asm}mov {ctx.GetRSPIndex(variableToAssign)}, rax\n\n";
     }
 }

@@ -113,11 +113,23 @@
 
 		if (words.Length >= 3 && words[1] == "=")
 		{
-			return new Token_VariableAssign()
+			string value = string.Join(" ", words.Skip(2));
+            if (MathExpressions.IsExpression(value))
+            {
+				return new Token_MathExpression()
+				{
+					expression = value,
+					variableToAssign = words[0]
+				};
+			}
+			else
 			{
-				variableName = words[0],
-				value = words[2]
-			};
+                return new Token_VariableAssign()
+                {
+                    variableName = words[0],
+                    value = value
+                };
+            }
 		}
 		
 		if (line == "{") return new Token_BlockBegin();

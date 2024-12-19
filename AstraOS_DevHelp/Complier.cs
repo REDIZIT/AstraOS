@@ -18,9 +18,15 @@ _start()
 	--]
 
 	int a
-	a = 123
+	a = 1
+
+	int b
+	b = 2
+
+	int c
+	c = 10 - (a + b * 5)
 	
-	if a
+	if c
 	{
 		my_func()
 	}
@@ -38,7 +44,7 @@ my_func()
 	
 	public static void Main()
 	{
-		Stopwatch w = Stopwatch.StartNew();
+        Stopwatch w = Stopwatch.StartNew();
 
 		string asm = Compile(source);
 		Console.WriteLine(asm);
@@ -52,8 +58,6 @@ my_func()
 		CompilationContext ctx = new();
 
 		List<Token> tokens = Tokenizer.Tokenize(source, ctx);
-		//Console.WriteLine(string.Join(", ", tokens.Select(t => t.ToString())));
-
         string asm = Generator.Generate(tokens, ctx);
 		
 		return Generator.FormatAsm(asm);

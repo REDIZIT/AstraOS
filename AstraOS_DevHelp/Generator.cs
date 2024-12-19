@@ -35,8 +35,6 @@ public static class Generator
 
 					*/
 
-					b.AppendLine("mov rax, 0"); // DEBUG LINE ('if true')
-
 					b.AppendLine("cmp rax, 1");
 					b.AppendLine("jge .if_true");
 					b.AppendLine("jmp .if_end");
@@ -96,7 +94,7 @@ public static class Generator
 
 	private static int FirstIndexOf(List<Token> tokens, Func<Token, bool> predicate, int startIndex)
 	{
-		for (int i = startIndex; i < tokens.Count - startIndex; i++)
+		for (int i = startIndex; i < tokens.Count; i++)
 		{
 			Token token = tokens[i];
 			if (predicate(token)) return i;
@@ -114,8 +112,10 @@ public class CompilationContext
 
 	public int AllocVariable(string name)
 	{
-		variableNameOrdered.Add(name);
-		offsetByVariableName.Add(name, LastOffset + 4);
+		int lastOffset = LastOffset - 8;
+
+        variableNameOrdered.Add(name);
+		offsetByVariableName.Add(name, lastOffset);
 
         return LastOffset;
 	}
@@ -128,5 +128,11 @@ public class CompilationContext
 
 		variableNameOrdered.Remove(name);
 		offsetByVariableName.Remove(name);
+    }
+
+	public string GetRSPIndex(string variableName)
+	{
+        int localOffset = offsetByVariableName[variableName];
+        return $"[rbp" + (localOffset < 0 ? localOffset : " + " + localOffset) + "]";
     }
 }
