@@ -2,7 +2,7 @@
 
 public static class Generator
 {
-	public static string Generate(List<Token> tokens)
+	public static string Generate(List<Token> tokens, CompilationContext ctx)
 	{
 		StringBuilder b = new();
 		
@@ -44,7 +44,7 @@ public static class Generator
 
 					var bodyTokens = tokens.Slice(blockBeginIndex + 1, blockEndIndex - blockBeginIndex - 1);
 					Console.WriteLine(string.Join(", ", bodyTokens.Select(t => t.ToString())));
-					b.Append(Generate(bodyTokens));
+					b.Append(Generate(bodyTokens, ctx));
 
 					// generated body
 					b.AppendLine("jmp .if_end");
@@ -61,7 +61,7 @@ public static class Generator
 			}
 			else
 			{
-                b.Append(tokens[i].Generate());
+                b.Append(tokens[i].Generate(ctx));
             }
 		}
 
@@ -103,4 +103,30 @@ public static class Generator
 		}
 		return -1;
 	}
+}
+
+public class CompilationContext
+{
+	public Dictionary<string, int> offsetByVariableName = new();
+	public List<string> variableNameOrdered = new();
+
+	public int LastOffset => offsetByVariableName.Count == 0 ? 0 : offsetByVariableName[variableNameOrdered.Last()];
+
+	public int AllocVariable(string name)
+	{
+		variableNameOrdered.Add(name);
+		offsetByVariableName.Add(name, LastOffset + 4);
+
+        return LastOffset;
+	}
+	public void FreeVariable(string name)
+	{
+		if (variableNameOrdered.Last() != name)
+		{
+			throw new Exception($"Failed to register variable's free due to passed name '{name}' is not on top of the stack. Now, top variable is '{variableNameOrdered.Last()}'");
+		}
+
+		variableNameOrdered.Remove(name);
+		offsetByVariableName.Remove(name);
+    }
 }

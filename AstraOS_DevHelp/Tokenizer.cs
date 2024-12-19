@@ -1,6 +1,6 @@
 ﻿public static class Tokenizer
 {
-	public static List<Token> Tokenize(string text)
+	public static List<Token> Tokenize(string text, CompilationContext ctx)
 	{
 		List<Token> tokens = new List<Token>();
 		
@@ -9,7 +9,7 @@
 		string[] lines = text.Split('\n');
 		for (int i = 0; i < lines.Length; i++)
 		{
-			Token token = TokenizeLine(lines, i, commentDepth > 0);
+			Token token = TokenizeLine(lines, i, commentDepth > 0, ctx);
 			if (token != null)
 			{
 				if (token is Token_Comment comment)
@@ -27,7 +27,7 @@
 		
 		return tokens;
 	}
-	public static Token TokenizeLine(string[] lines, int lineIndex, bool isCommentWaiting)
+	public static Token TokenizeLine(string[] lines, int lineIndex, bool isCommentWaiting, CompilationContext ctx)
 	{
 		string line = lines[lineIndex].Trim();
 		string[] words = line.Split(' ');
@@ -88,7 +88,6 @@
 			};
 		}
 		
-		// Return
 		if (words[0] == "return")
 		{
 			return new Token_Return();	
@@ -104,6 +103,20 @@
 			return new Token_If()
 			{
 				expression = null
+			};
+		}
+
+		if (words[0] == "int")
+		{
+			return new Token_VariableDeclaration(words[0], words[1], ctx);
+		}
+
+		if (words.Length >= 3 && words[1] == "=")
+		{
+			return new Token_VariableAssign()
+			{
+				variableName = words[0],
+				value = words[2]
 			};
 		}
 		

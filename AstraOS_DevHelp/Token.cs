@@ -1,5 +1,14 @@
-﻿public abstract class Token
+﻿using System.Net.NetworkInformation;
+
+public abstract class Token
 {
+    protected CompilationContext ctx;
+
+    public string Generate(CompilationContext ctx)
+    {
+        this.ctx = ctx;
+        return Generate();
+    }
 	public abstract string Generate();
 }
 
@@ -86,5 +95,37 @@ public class Token_If : Token
     public override string Generate()
     {
         return $"";
+    }
+}
+
+public class Token_VariableDeclaration : Token
+{
+    public string type;
+    public string name;
+    public int localOffset;
+
+    public Token_VariableDeclaration(string type, string name, CompilationContext ctx)
+    {
+        this.type = type;
+        this.name = name;
+        localOffset = ctx.AllocVariable(name);
+    }
+
+    public override string Generate()
+    {
+        string rspIndex = $"[rsp" + (localOffset < 0 ? localOffset : " + " + localOffset) + "]";
+        return $"sub rsp, 4\nmov qword {rspIndex}, 0\n";
+    }
+}
+public class Token_VariableAssign : Token
+{
+    public string variableName;
+    public string value;
+
+    public override string Generate()
+    {
+        int localOffset = ctx.offsetByVariableName[variableName];
+        string rspIndex = $"[rsp" + (localOffset < 0 ? localOffset : " + " + localOffset) + "]";
+        return $"mov qword {rspIndex}, {value}\n";
     }
 }

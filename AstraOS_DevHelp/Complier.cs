@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 
 public static class Compiler
 {
@@ -19,8 +16,11 @@ _start()
 	add rsp, 4
 	--]
 	--]
+
+	int a
+	a = 123
 	
-	if true
+	if a
 	{
 		my_func()
 	}
@@ -49,11 +49,12 @@ my_func()
 	
 	public static string Compile(string source)
 	{
-		List<Token> tokens = Tokenizer.Tokenize(source);
-		
+		CompilationContext ctx = new();
+
+		List<Token> tokens = Tokenizer.Tokenize(source, ctx);
 		//Console.WriteLine(string.Join(", ", tokens.Select(t => t.ToString())));
-		
-		string asm = Generator.Generate(tokens);
+
+        string asm = Generator.Generate(tokens, ctx);
 		
 		return Generator.FormatAsm(asm);
 	}
