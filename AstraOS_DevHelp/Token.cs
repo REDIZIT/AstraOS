@@ -100,19 +100,30 @@ public class Token_VariableDeclaration : Token
 {
     public string type;
     public string name;
+    public string defaultValue;
     public int localOffset;
 
-    public Token_VariableDeclaration(string type, string name, CompilationContext ctx)
+    public Token_VariableDeclaration(string type, string name, string defaultValue, CompilationContext ctx)
     {
         this.type = type;
         this.name = name;
+        this.defaultValue = defaultValue;
         localOffset = ctx.AllocVariable(name);
     }
 
     public override string Generate()
     {
         string rspIndex = ctx.GetRSPIndex(name);
-        return $"sub rsp, 8\nmov qword {rspIndex}, 0\n";
+
+        if (MathExpressions.IsExpression(defaultValue))
+        {
+            string asm = MathExpressions.Generate(defaultValue, ctx);
+            return $"{asm}\nsub rsp, 8\nmov qword {rspIndex}, rax\n";
+        }
+        else
+        {
+            return $"sub rsp, 8\nmov qword {rspIndex}, {defaultValue}\n";
+        }
     }
 }
 public class Token_VariableAssign : Token

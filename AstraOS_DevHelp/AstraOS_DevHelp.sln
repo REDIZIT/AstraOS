@@ -5,6 +5,8 @@ VisualStudioVersion = 17.8.34408.163
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AstraOS_DevHelp", "AstraOS_DevHelp.csproj", "{3BDBC3EC-9E10-412F-99A6-3C1A83B35447}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "..\Tests\Tests.csproj", "{B68363FB-1F39-41D1-A34C-43D0D762120B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{3BDBC3EC-9E10-412F-99A6-3C1A83B35447}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3BDBC3EC-9E10-412F-99A6-3C1A83B35447}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3BDBC3EC-9E10-412F-99A6-3C1A83B35447}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B68363FB-1F39-41D1-A34C-43D0D762120B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B68363FB-1F39-41D1-A34C-43D0D762120B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B68363FB-1F39-41D1-A34C-43D0D762120B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B68363FB-1F39-41D1-A34C-43D0D762120B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

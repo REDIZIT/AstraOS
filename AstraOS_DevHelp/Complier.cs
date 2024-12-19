@@ -17,6 +17,7 @@ _start()
 	--]
 	--]
 
+	--[
 	int a
 	a = 1
 
@@ -25,6 +26,12 @@ _start()
 
 	int c
 	c = 10 - (a + b * 5)
+	--]
+
+	int a = 1
+	int b = 1
+
+	int c = a and not b
 	
 	if c
 	{

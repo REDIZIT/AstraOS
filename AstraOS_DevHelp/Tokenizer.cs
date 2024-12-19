@@ -108,7 +108,13 @@
 
 		if (words[0] == "int")
 		{
-			return new Token_VariableDeclaration(words[0], words[1], ctx);
+			string defaultValue = "0";
+			if (words.Length > 3)
+			{
+                defaultValue = string.Join(" ", words.Skip(3));
+            }
+
+			return new Token_VariableDeclaration(words[0], words[1], defaultValue, ctx);
 		}
 
 		if (words.Length >= 3 && words[1] == "=")

@@ -3,9 +3,20 @@ using System.Text.RegularExpressions;
 
 public class MathExpressions
 {
+    public static Dictionary<string, int> precedence = new()
+    {
+        { "+", 2 },
+        { "-", 2 },
+        { "*", 3 },
+        { "/", 3 },
+        { "and", 0 },
+        { "or", 0 },
+        { "not", 1 },
+    };
+
     public static bool IsExpression(string str)
     {
-        return str.Contains('+') || str.Contains('-') || str.Contains('*') || str.Contains('/');
+        return precedence.Any(kv => str.Contains(kv.Key));
     }
 
     public static string Generate(string expression, CompilationContext ctx)
@@ -19,11 +30,9 @@ public class MathExpressions
 
     public static List<string> Tokenize(string expression)
     {
-        // Регулярное выражение для поиска чисел, переменных, операторов и скобок
-        var regex = new Regex(@"\d+|[a-zA-Z]+|[+\-*/()]");
+        var regex = new Regex(@"\d+|[a-zA-Z]+|[+\-*/()]+and+or+not");
         var matches = regex.Matches(expression);
 
-        // Сохранение токенов в список
         var tokens = new List<string>();
         foreach (Match match in matches)
         {
@@ -37,18 +46,11 @@ public class MathExpressions
     {
         var output = new List<string>();
         var operators = new Stack<string>();
-        var precedence = new Dictionary<string, int>
-        {
-            { "+", 1 },
-            { "-", 1 },
-            { "*", 2 },
-            { "/", 2 }
-        };
 
         foreach (var token in tokens)
         {
             // If constant or variable
-            if (int.TryParse(token, out _) || char.IsLetter(token[0]))
+            if (precedence.ContainsKey(token) == false)
             {
                 output.Add(token);
             }
@@ -85,7 +87,7 @@ public class MathExpressions
         foreach (string token in rpn)
         {
             // If constant or variable
-            if (int.TryParse(token, out _) || char.IsLetter(token[0]))
+            if (precedence.ContainsKey(token) == false)
             {
                 string value;
 
@@ -104,12 +106,16 @@ public class MathExpressions
             else
             {
                 b.AppendLine("pop rax");
-                b.AppendLine("pop rbx");
+                if (token != "not") b.AppendLine("pop rbx");
+
 
                 if (token == "+") b.AppendLine("add rax, rbx");
                 else if (token == "-") b.AppendLine("sub rax, rbx");
                 else if (token == "*") b.AppendLine("imul rax, rbx");
                 else if (token == "/") b.AppendLine("idiv rax, rbx");
+                else if (token == "and") b.AppendLine("and rax, rbx");
+                else if (token == "or") b.AppendLine("or rax, rbx");
+                else if (token == "not") b.AppendLine("test rax, rax\nsete al");
                 else throw new Exception($"Unknown operator token '{token}'");
 
                 b.AppendLine("push qword rax");
