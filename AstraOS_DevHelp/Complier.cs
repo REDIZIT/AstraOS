@@ -7,19 +7,27 @@ public static class Compiler
 	
 program_ñompiled_main()
 {
-	int a = 50
-	int b = 2
-
-	if a > b + 10 and (b < 100 or a > 150)
+	int i = 3
+	while i > 0
 	{
-		my_func()
+		my_func1()
+		i = i - 1
 	}
+
+	my_func2()
+
 	return
 }
 
-my_func()
+my_func1()
 {
-	string str = 123
+	string str = body
+	writeline str
+	return
+}
+my_func2()
+{
+	string str = !!! exit !!!
 	writeline str
 	return
 }

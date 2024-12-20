@@ -28,7 +28,7 @@ public class Token_FunctionCall : Token
 
     public override string Generate()
     {
-        return $"call {functionName}\n";
+        return $"push rbp\ncall {functionName}\npop rbp\n";
     }
 }
 public class Token_BlockBegin : Token
@@ -217,7 +217,26 @@ public class Token_MathExpression : Token
         else
         {
             // Put result of calculation into variable
-            return $"{asm}mov {ctx.GetRSPIndex(variableToAssign)}, rax\n\n";
+            return $"{asm}mov {ctx.GetRSPIndex(variableToAssign)}, rbx\n; MathExpressions.Generate\n";
         }
+    }
+}
+
+public class Token_While : Token
+{
+    public string expression;
+
+    public override string Generate()
+    {
+        string expressionAsm = MathExpressions.Generate(expression, ctx);
+
+        return @$".while_check:
+{expressionAsm}
+cmp rbx, 0
+jle .while_exit
+%while_body%
+jmp .while_check
+.while_exit:
+";
     }
 }

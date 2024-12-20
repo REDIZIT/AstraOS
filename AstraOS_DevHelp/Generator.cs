@@ -66,7 +66,6 @@ public static class Generator
 					b.AppendLine(".if_true:");
 
 					var bodyTokens = tokens.Slice(blockBeginIndex + 1, blockEndIndex - blockBeginIndex - 1);
-					Console.WriteLine(string.Join(", ", bodyTokens.Select(t => t.ToString())));
 					b.Append(Generate(bodyTokens, ctx));
 
 					// generated body
@@ -82,6 +81,24 @@ public static class Generator
 					throw new Exception("Invalid if statement tokens");
 				}
 			}
+			else if (token is Token_While tokenWhile)
+			{
+				string asm = tokenWhile.Generate(ctx);
+
+                int blockBeginIndex = i + 1;
+                int blockEndIndex = FirstIndexOf(tokens, t => t is Token_BlockEnd, blockBeginIndex);
+
+                Token blockBegin = tokens[blockBeginIndex];
+                Token blockEnd = tokens[blockEndIndex];
+
+                var bodyTokens = tokens.Slice(blockBeginIndex + 1, blockEndIndex - blockBeginIndex - 1);
+				string bodyAsm = Generate(bodyTokens, ctx);
+
+                asm = asm.Replace("%while_body%", bodyAsm);
+				b.AppendLine(asm);
+
+                i = blockEndIndex;
+            }
 			else
 			{
                 b.Append(tokens[i].Generate(ctx));

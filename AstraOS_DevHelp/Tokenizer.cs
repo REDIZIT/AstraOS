@@ -154,6 +154,15 @@
                 };
             }
 		}
+
+		// While and for
+		if (words[0] == "while")
+		{
+			return new Token_While()
+			{
+				expression = string.Join(" ", words.Skip(1))
+			};
+		}
 		
 		if (line == "{") return new Token_BlockBegin();
 		else if (line == "}") return new Token_BlockEnd();
