@@ -2,13 +2,23 @@
 
 public static class Generator
 {
-	public static string Generate(List<Token> tokens, CompilationContext ctx)
+	public static string Generate(List<Token> tokens, CompilationContext mainCtx)
 	{
 		StringBuilder b = new();
+		CompilationContext ctx = mainCtx;
 		
 		for (int i = 0; i < tokens.Count; i++)
 		{
 			Token token = tokens[i];
+
+			if (token is Token_FunctionDeclaration functionDeclaration)
+			{
+                ctx = ctx.childrenContextByFunctionName[functionDeclaration.functionName];
+            }
+			else if (token is Token_Return)
+			{
+                ctx = ctx.parent;
+			}
 
 			if (token is Token_If tokenIf)
 			{
@@ -23,7 +33,7 @@ public static class Generator
 				{
 					/*
 					
-					cmp rax, 1
+					cmp rbx, 1
 					jge .if_true
 					jmp .if_false
 					.if_true:
@@ -35,7 +45,20 @@ public static class Generator
 
 					*/
 
-					b.AppendLine("cmp rax, 1");
+					if (tokenIf.expression is Token_MathExpression mathExpression)
+					{
+                        b.AppendLine("cmp rax, 1");
+                    }
+					else if (tokenIf.expression is Token_VariableAssign variable)
+					{
+                        b.AppendLine($"cmp qword {ctx.GetRSPIndex(variable.variableName)}, 1");
+                    }
+					else
+					{
+						throw new Exception($"Unkown expression '{tokenIf.expression}' in TokenIf");
+					}
+
+					//b.AppendLine("cmp rbx, 1");
 					b.AppendLine("jge .if_true");
 					b.AppendLine("jmp .if_end");
 					b.AppendLine(".if_true:");

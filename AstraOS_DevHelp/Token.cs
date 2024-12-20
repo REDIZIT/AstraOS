@@ -175,14 +175,15 @@ public class Token_VariableDeclaration : Token
         }
         else
         {
+            int sizeInBytes = 4;
             if (MathExpressions.IsExpression(defaultValue))
             {
                 string asm = MathExpressions.Generate(defaultValue, ctx);
-                return $"{asm}\nsub rsp, 8\nmov qword {rspIndex}, rax\n";
+                return $"{asm}\nsub rsp, {sizeInBytes}\nmov qword {rspIndex}, rax\n";
             }
             else
             {
-                return $"sub rsp, 8\nmov qword {rspIndex}, {defaultValue}\n";
+                return $"sub rsp, {sizeInBytes}\nmov qword {rspIndex}, {defaultValue}\n";
             }
         }        
     }

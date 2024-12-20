@@ -1,12 +1,15 @@
 ﻿public class CompilationContext
 {
+	public int LastOffset => offsetByVariableName.Count == 0 ? 0 : offsetByVariableName[variableNameOrdered.Last()];
+
 	public Dictionary<string, int> offsetByVariableName = new();
 	public Dictionary<string, int> sizeInBytesByVariableName = new();
 	public List<string> variableNameOrdered = new();
 
-	public int LastOffset => offsetByVariableName.Count == 0 ? 0 : offsetByVariableName[variableNameOrdered.Last()];
+	public CompilationContext parent;
+	public Dictionary<string, CompilationContext> childrenContextByFunctionName = new();
 
-	public int AllocVariable(string name, int sizeInBytes)
+    public int AllocVariable(string name, int sizeInBytes)
 	{
 		if (sizeInBytes <= 0) throw new Exception($"Invalid argument 'sizeInBytes'. Expected value > 0, but given {sizeInBytes}");
 
@@ -42,5 +45,15 @@
     public int GetOffset(string variableName)
     {
         return offsetByVariableName[variableName];
+    }
+
+	public CompilationContext CreateSubContext(string functionName)
+	{
+		CompilationContext ctx = new()
+		{
+			parent = this
+		};
+		childrenContextByFunctionName.Add(functionName, ctx);
+		return ctx;
     }
 }

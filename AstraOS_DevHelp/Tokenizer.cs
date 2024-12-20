@@ -15,13 +15,20 @@
 				if (token is Token_Comment comment)
 				{
 					commentDepth += comment.isClosing ? -1 : 1;
-					//Console.WriteLine(commentDepth);
 				}
 				else if (commentDepth <= 0)
 				{
-					//Console.WriteLine("Add token: " + token);
-					tokens.Add(token);
-				}
+					if (token is Token_FunctionDeclaration functionDeclaration)
+					{
+						ctx = ctx.CreateSubContext(functionDeclaration.functionName);
+                    }
+					else if (token is Token_Return)
+					{
+						ctx = ctx.parent;
+					}
+
+                    tokens.Add(token);
+                }
 			}
 		}
 		
@@ -112,8 +119,8 @@
 		{
 			return new Token_If()
 			{
-				expression = null
-			};
+				expression = TokenizeVarOrExpression(words[1..])
+            };
 		}
 
 		if (words[0] == "int" || words[0] == "string")
@@ -153,4 +160,25 @@
 		
 		throw new Exception("Failed to tokenize line: '" + line + "'");
 	}
+
+	private static Token TokenizeVarOrExpression(string[] words)
+	{
+        string value = string.Join(" ", words);
+        if (MathExpressions.IsExpression(value))
+        {
+            return new Token_MathExpression()
+            {
+                expression = value,
+                variableToAssign = words[0]
+            };
+        }
+        else
+        {
+            return new Token_VariableAssign()
+            {
+                variableName = words[0],
+                value = value
+            };
+        }
+    }
 }
