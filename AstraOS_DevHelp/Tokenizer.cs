@@ -87,21 +87,25 @@
 		}
 		
 		// Print
-		if (words[0].Contains("print"))
+		if (words[0] == "print")
 		{
-			string offset = ctx.GetRSPIndex(words[1]);
+			string offset = ctx.GetRSPIndex(words[0]);
 			return new Token_Print()
 			{
 				pointerToString = offset
             };
 		}
-        if (words[0].Contains("writeline"))
+        if (words[0] == "writeline")
         {
             string offset = ctx.GetRSPIndex(words[1]);
             return new Token_WriteConsole()
             {
                 pointerToString = offset
             };
+        }
+        if (words[0] == "printbuffer")
+        {
+            return new Token_WriteConsole_Buffer();
         }
 
 
@@ -155,6 +159,15 @@
             }
 		}
 
+		if (words[0] == "int_to_string")
+		{
+			return new Token_IntToString()
+			{
+				valueOrRsp_int = words[1],
+				rsp_outString = words[2]
+			};
+		}
+
 		// While and for
 		if (words[0] == "while")
 		{
@@ -162,6 +175,27 @@
 			{
 				expression = string.Join(" ", words.Skip(1))
 			};
+		}
+		if (words[0] == "for")
+		{
+			string[] range = words[4].Replace("..", ".").TrimEnd(',').Split('.');
+
+			bool isReversed = false;
+			if (words.Length > 5 && int.TryParse(words[5], out int step))
+			{
+				isReversed = step < 0;
+			}
+
+			return new Token_For()
+			{
+				ctx = ctx,
+				iteratorName = words[2],
+				range_a = range[0][1..],
+				include_a = range[0][0] == '[',
+				range_b = range[1][..^1],
+				include_b = range[1][^1] == ']',
+				isReversed = isReversed
+            };
 		}
 		
 		if (line == "{") return new Token_BlockBegin();

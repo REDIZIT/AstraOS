@@ -7,11 +7,13 @@ public static class Compiler
 	
 program_ñompiled_main()
 {
-	int i = 3
-	while i > 0
+	int a = 0
+	int b = 10
+
+	for int i = [a..b), -1
 	{
-		my_func1()
-		i = i - 1
+		int_to_string i buffer
+		printbuffer
 	}
 
 	my_func2()
@@ -51,6 +53,14 @@ my_func2()
 		CompilationContext ctx = new();
 
 		List<Token> tokens = Tokenizer.Tokenize(source, ctx);
+
+		int i = 0;
+		while (i < tokens.Count)
+		{
+			tokens[i].Simplify(tokens, i);
+			i++;
+		}
+
         string asm = Generator.Generate(tokens, ctx);
 		
 		return Generator.FormatAsm(asm);
@@ -77,9 +87,15 @@ my_func2()
         string header = @"section .data
 	msg db ""String in .data section"", 0
 
+section .bss
+	buffer resb 32
+
 section .text
-global program_ñompiled_main
+
 extern console_writeline
+extern int_to_string
+
+global program_ñompiled_main
 ";
 
         File.WriteAllText(settings.compilationOutputFile, header + asm);

@@ -1,23 +1,35 @@
 section .data
 	msg db "String in .data section", 0
 
+section .bss
+	buffer resb 32
+
 section .text
-global program_сompiled_main
+
 extern console_writeline
+extern int_to_string
+
+global program_сompiled_main
 
 program_сompiled_main:
 	mov rbp, rsp
 	sub rsp, 4
-	mov qword [rbp-4], 3
+	mov qword [rbp-4], 0
+	sub rsp, 4
+	mov qword [rbp-8], 10
+	sub rsp, 4
+	mov qword rbx, [rbp-8]
+	mov [rbp-12], rbx
+	dec qword [rbp-12]
 .while_check:
 	
-	; i > 0
+	; i >= a
+	push qword [rbp-12]
 	push qword [rbp-4]
-	push qword 0
 	pop rcx
 	pop rbx
 	cmp rbx, rcx
-	setg dl
+	setge dl
 	movzx rdx, dl
 	mov rbx, rdx
 	push qword rbx
@@ -25,20 +37,19 @@ program_сompiled_main:
 	
 	cmp rbx, 0
 	jle .while_exit
-	push rbp
-	call my_func1
-	pop rbp
 	
-	; i - 1
-	push qword [rbp-4]
-	push qword 1
-	pop rcx
-	pop rbx
-	sub rbx, rcx
-	push qword rbx
-	pop rbx
-	mov [rbp-4], rbx
-	; MathExpressions.Generate
+	; IntToString i, buffer
+	mov qword rbx, [rbp-12]
+	push rbx
+	push buffer
+	call int_to_string
+	add rsp, 8
+	
+	push buffer
+	call console_writeline
+	add rsp, 4
+	
+	dec qword [rbp-12]
 	
 	jmp .while_check
 .while_exit:

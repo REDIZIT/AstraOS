@@ -12,6 +12,7 @@
     public int AllocVariable(string name, int sizeInBytes)
 	{
 		if (sizeInBytes <= 0) throw new Exception($"Invalid argument 'sizeInBytes'. Expected value > 0, but given {sizeInBytes}");
+		if (offsetByVariableName.ContainsKey(name)) throw new Exception($"Variable with name '{name}' already allocated inside context");
 
 		int lastOffset = LastOffset - sizeInBytes;
 

@@ -11,6 +11,8 @@ public class MathExpressions
         { "-", 3 },
         { ">", 2 },
         { "<", 2 },
+        { ">=", 2 },
+        { "<=", 2 },
         { "not", 1 },
         { "and", 0 },
         { "or", 0 },
@@ -32,7 +34,7 @@ public class MathExpressions
 
     public static List<string> Tokenize(string expression)
     {
-        var regex = new Regex(@"\d+|[a-zA-Z]+|[+\-*\/()><]");
+        var regex = new Regex(@"\d+|[a-zA-Z]|>=|<=|[+\-*\/()><]");
         var matches = regex.Matches(expression);
 
         var tokens = new List<string>();
@@ -125,6 +127,8 @@ public class MathExpressions
                 else if (token == "not") b.AppendLine("test rbx, rbx\nsete al");
                 else if (token == ">") b.AppendLine("cmp rbx, rcx\nsetg dl\nmovzx rdx, dl\nmov rbx, rdx");
                 else if (token == "<") b.AppendLine("cmp rbx, rcx\nsetl dl\nmovzx rdx, dl\nmov rbx, rdx");
+                else if (token == ">=") b.AppendLine("cmp rbx, rcx\nsetge dl\nmovzx rdx, dl\nmov rbx, rdx");
+                else if (token == "<=") b.AppendLine("cmp rbx, rcx\nsetle dl\nmovzx rdx, dl\nmov rbx, rdx");
                 else throw new Exception($"Unknown operator token '{token}'");
 
                 b.AppendLine("push qword rbx");
