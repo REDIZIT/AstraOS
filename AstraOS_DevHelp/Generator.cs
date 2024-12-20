@@ -102,37 +102,3 @@ public static class Generator
 		return -1;
 	}
 }
-
-public class CompilationContext
-{
-	public Dictionary<string, int> offsetByVariableName = new();
-	public List<string> variableNameOrdered = new();
-
-	public int LastOffset => offsetByVariableName.Count == 0 ? 0 : offsetByVariableName[variableNameOrdered.Last()];
-
-	public int AllocVariable(string name)
-	{
-		int lastOffset = LastOffset - 8;
-
-        variableNameOrdered.Add(name);
-		offsetByVariableName.Add(name, lastOffset);
-
-        return LastOffset;
-	}
-	public void FreeVariable(string name)
-	{
-		if (variableNameOrdered.Last() != name)
-		{
-			throw new Exception($"Failed to register variable's free due to passed name '{name}' is not on top of the stack. Now, top variable is '{variableNameOrdered.Last()}'");
-		}
-
-		variableNameOrdered.Remove(name);
-		offsetByVariableName.Remove(name);
-    }
-
-	public string GetRSPIndex(string variableName)
-	{
-        int localOffset = offsetByVariableName[variableName];
-        return $"[rbp" + (localOffset < 0 ? localOffset : " + " + localOffset) + "]";
-    }
-}

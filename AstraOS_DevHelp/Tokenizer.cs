@@ -82,13 +82,23 @@
 		// Print
 		if (words[0].Contains("print"))
 		{
+			string offset = ctx.GetRSPIndex(words[1]);
 			return new Token_Print()
 			{
-				message = line.Split('\'')[1]
-			};
+				pointerToString = offset
+            };
 		}
-		
-		if (words[0] == "return")
+        if (words[0].Contains("writeline"))
+        {
+            string offset = ctx.GetRSPIndex(words[1]);
+            return new Token_WriteConsole()
+            {
+                pointerToString = offset
+            };
+        }
+
+
+        if (words[0] == "return")
 		{
 			return new Token_Return();	
 		}
@@ -106,7 +116,7 @@
 			};
 		}
 
-		if (words[0] == "int")
+		if (words[0] == "int" || words[0] == "string")
 		{
 			string defaultValue = "0";
 			if (words.Length > 3)

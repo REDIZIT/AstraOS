@@ -4,19 +4,8 @@ public static class Compiler
 {
 	public static string source = @"
 	
-_start()
+program_ñompiled_main()
 {
-	--[
-	rbp = rsp
-
-	int a = 1
-	--[
-	sub rsp, 4
-	mov [rsp-4], 1
-	add rsp, 4
-	--]
-	--]
-
 	--[
 	int a
 	a = 1
@@ -28,22 +17,34 @@ _start()
 	c = 10 - (a + b * 5)
 	--]
 
+	--[
 	int a = 1
 	int b = 1
 
-	int c = a and not b
+	int c = a and b
 	
 	if c
 	{
 		my_func()
 	}
+	--]
+
+	my_func()
 	
 	exit
 }
 
 my_func()
 {
-	print 'My test string'
+	string str = My string
+	writeline str
+
+	string str2 = My another string
+	writeline str2
+
+	writeline str
+	writeline str2
+
 	return
 }
 

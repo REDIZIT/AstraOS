@@ -1,4 +1,6 @@
-﻿public abstract class Token
+﻿using System.Text;
+
+public abstract class Token
 {
     protected CompilationContext ctx;
 
@@ -47,20 +49,33 @@ public class Token_Return : Token
 {
     public override string Generate()
     {
-        return "ret\n";
+        return "\nmov rsp, rbp\nret\n";
     }
 }
 public class Token_Print : Token
 {
-    public string message;
+    public string pointerToString;
 
     public override string Generate()
     {
-        return @"mov rax, 1
+        return @$"mov rax, 1
 mov rdi, 1
-mov rsi, msg
+lea rsi, {pointerToString}
 mov rdx, 13
 syscall
+";
+    }
+}
+public class Token_WriteConsole : Token
+{
+    public string pointerToString;
+
+    public override string Generate()
+    {
+        return @$"lea rbx, {pointerToString}
+push rbx
+call console_writeline
+add rsp, 4
 ";
     }
 }
@@ -108,22 +123,68 @@ public class Token_VariableDeclaration : Token
         this.type = type;
         this.name = name;
         this.defaultValue = defaultValue;
-        localOffset = ctx.AllocVariable(name);
+
+        int sizeInBytes;
+
+        if (type == "string")
+        {
+            sizeInBytes = defaultValue.Length + 1;
+        }
+        else if (type == "int")
+        {
+            sizeInBytes = 8;
+        }
+        else
+        {
+            throw new Exception($"Unknown variable type '{type}'");
+        }
+
+        localOffset = ctx.AllocVariable(name, sizeInBytes);
     }
 
     public override string Generate()
     {
         string rspIndex = ctx.GetRSPIndex(name);
 
-        if (MathExpressions.IsExpression(defaultValue))
+        if (type == "string")
         {
-            string asm = MathExpressions.Generate(defaultValue, ctx);
-            return $"{asm}\nsub rsp, 8\nmov qword {rspIndex}, rax\n";
+            int sizeInBytes = ctx.GetSizeInBytes(name);
+            int divider = 1;
+            int qwordsCount = (int)Math.Floor((sizeInBytes - 1) / (float)divider);
+            int offset = ctx.GetOffset(name);
+
+            StringBuilder b = new();
+
+            b.AppendLine($"\n; string {name} = '{defaultValue}'");
+            b.AppendLine("mov rbx, rbp");
+            b.AppendLine($"sub rbx, {-offset}");
+
+            for (int i = 0; i < qwordsCount; i++)
+            {
+                int startIndex = i * divider;
+                int endIndex = Math.Clamp(startIndex + divider, 0, defaultValue.Length);
+                string substring = defaultValue.Substring(i * divider, endIndex - startIndex);
+                b.AppendLine($"mov byte [rbx+{i * divider}], \"{substring}\"");
+            }
+
+            b.AppendLine($"mov byte [rbx+{sizeInBytes - 1}], 0");
+            b.AppendLine($"sub rsp, {sizeInBytes}");
+            b.AppendLine();
+
+            return b.ToString();
         }
         else
         {
-            return $"sub rsp, 8\nmov qword {rspIndex}, {defaultValue}\n";
-        }
+            if (MathExpressions.IsExpression(defaultValue))
+            {
+                string asm = MathExpressions.Generate(defaultValue, ctx);
+                return $"{asm}\nsub rsp, 8\nmov qword {rspIndex}, rax\n";
+            }
+            else
+            {
+                return $"sub rsp, 8\nmov qword {rspIndex}, {defaultValue}\n";
+            }
+        }        
     }
 }
 public class Token_VariableAssign : Token

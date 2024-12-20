@@ -13,9 +13,10 @@ extern program_int_main
 extern program_ram_main
 extern program_disks_main
 extern program_proper_calls_main
+extern program_сompiled_main
 
 _start:
-	call program_proper_calls_main
+	call program_сompiled_main
 	jmp halt
 
 halt:
