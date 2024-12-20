@@ -132,7 +132,7 @@ public class Token_VariableDeclaration : Token
         }
         else if (type == "int")
         {
-            sizeInBytes = 8;
+            sizeInBytes = 4;
         }
         else
         {
@@ -208,6 +208,16 @@ public class Token_MathExpression : Token
     public override string Generate()
     {
         string asm = MathExpressions.Generate(expression, ctx);
-        return $"{asm}mov {ctx.GetRSPIndex(variableToAssign)}, rax\n\n";
+
+        if (variableToAssign == null)
+        {
+            // Put (don't touch) result of calculation into rax
+            return $"{asm}\n";
+        }
+        else
+        {
+            // Put result of calculation into variable
+            return $"{asm}mov {ctx.GetRSPIndex(variableToAssign)}, rax\n\n";
+        }
     }
 }

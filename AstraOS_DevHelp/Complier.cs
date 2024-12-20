@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using System.Diagnostics;
 
 public static class Compiler
@@ -5,10 +6,11 @@ public static class Compiler
 	public static string source = @"
 	
 program_ñompiled_main()
-{	
-	int c = 1
+{
+	int a = 50
+	int b = 2
 
-	if c
+	if a > b + 10 and (b < 100 or a > 150)
 	{
 		my_func()
 	}
@@ -17,15 +19,8 @@ program_ñompiled_main()
 
 my_func()
 {
-	string str = My first string
+	string str = 123
 	writeline str
-
-	string str2 = My second string
-	writeline str2
-
-	writeline str
-	writeline str2
-
 	return
 }
 
@@ -36,10 +31,11 @@ my_func()
         Stopwatch w = Stopwatch.StartNew();
 
 		string asm = Compile(source);
-		Console.WriteLine(asm);
 
 		w.Stop();
 		Console.WriteLine("\nCompiled in: " + w.ElapsedMilliseconds + " ms");
+
+		Export(asm);
 	}
 	
 	public static string Compile(string source)
@@ -51,4 +47,38 @@ my_func()
 		
 		return Generator.FormatAsm(asm);
 	}
+
+	private static void Export(string asm)
+	{
+		string filepath = "../../../appsettings.json";
+
+		if (File.Exists(filepath) == false)
+		{
+			Console.WriteLine("Export: no appsettings.json found");
+            return;
+        }
+
+		AppSettings settings = JsonConvert.DeserializeObject<AppSettings>(File.ReadAllText(filepath));
+		if (string.IsNullOrWhiteSpace(settings.compilationOutputFile))
+		{
+            Console.WriteLine("Export: compilationOutputFile is empty");
+            return;
+        }
+
+
+        string header = @"section .data
+	msg db ""String in .data section"", 0
+
+section .text
+global program_ñompiled_main
+extern console_writeline
+";
+
+        File.WriteAllText(settings.compilationOutputFile, header + asm);
+        Console.WriteLine("Export: success");
+    }
+}
+public class AppSettings
+{
+	public string compilationOutputFile;
 }

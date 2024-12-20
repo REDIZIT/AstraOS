@@ -169,7 +169,7 @@
             return new Token_MathExpression()
             {
                 expression = value,
-                variableToAssign = words[0]
+                variableToAssign = null
             };
         }
         else

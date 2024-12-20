@@ -5,13 +5,15 @@ public class MathExpressions
 {
     public static Dictionary<string, int> precedence = new()
     {
-        { "+", 2 },
-        { "-", 2 },
-        { "*", 3 },
-        { "/", 3 },
+        { "*", 4 },
+        { "/", 4 },
+        { "+", 3 },
+        { "-", 3 },
+        { ">", 2 },
+        { "<", 2 },
+        { "not", 1 },
         { "and", 0 },
         { "or", 0 },
-        { "not", 1 },
     };
 
     public static bool IsExpression(string str)
@@ -30,7 +32,7 @@ public class MathExpressions
 
     public static List<string> Tokenize(string expression)
     {
-        var regex = new Regex(@"\d+|[a-zA-Z]+|[+\-*/()]+and+or+not");
+        var regex = new Regex(@"\d+|[a-zA-Z]+|[+\-*\/()><]");
         var matches = regex.Matches(expression);
 
         var tokens = new List<string>();
@@ -87,7 +89,11 @@ public class MathExpressions
         foreach (string token in rpn)
         {
             // If constant or variable
-            if (precedence.ContainsKey(token) == false)
+            if(token == "(" || token == ")")
+            {
+
+            }
+            else if (precedence.ContainsKey(token) == false)
             {
                 string value;
 
@@ -105,24 +111,27 @@ public class MathExpressions
             }
             else
             {
-                b.AppendLine("pop rax");
+                // Pop in reverse order
+                b.AppendLine("pop rcx");
                 if (token != "not") b.AppendLine("pop rbx");
 
 
-                if (token == "+") b.AppendLine("add rax, rbx");
-                else if (token == "-") b.AppendLine("sub rax, rbx");
-                else if (token == "*") b.AppendLine("imul rax, rbx");
-                else if (token == "/") b.AppendLine("idiv rax, rbx");
-                else if (token == "and") b.AppendLine("and rax, rbx");
-                else if (token == "or") b.AppendLine("or rax, rbx");
-                else if (token == "not") b.AppendLine("test rax, rax\nsete al");
+                if (token == "+") b.AppendLine("add rbx, rcx");
+                else if (token == "-") b.AppendLine("sub rbx, rcx");
+                else if (token == "*") b.AppendLine("imul rbx, rcx");
+                else if (token == "/") b.AppendLine("idiv rbx, rcx");
+                else if (token == "and") b.AppendLine("and rbx, rcx");
+                else if (token == "or") b.AppendLine("or rbx, rcx");
+                else if (token == "not") b.AppendLine("test rbx, rbx\nsete al");
+                else if (token == ">") b.AppendLine("cmp rbx, rcx\nsetg dl\nmovzx rdx, dl\nmov rbx, rdx");
+                else if (token == "<") b.AppendLine("cmp rbx, rcx\nsetl dl\nmovzx rdx, dl\nmov rbx, rdx");
                 else throw new Exception($"Unknown operator token '{token}'");
 
-                b.AppendLine("push qword rax");
+                b.AppendLine("push qword rbx");
             }
         }
 
-        b.AppendLine("pop rax");
+        b.AppendLine("pop rbx");
 
         return b.ToString();
     }

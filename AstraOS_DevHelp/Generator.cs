@@ -47,7 +47,9 @@ public static class Generator
 
 					if (tokenIf.expression is Token_MathExpression mathExpression)
 					{
-                        b.AppendLine("cmp rax, 1");
+						string asm = mathExpression.Generate(ctx);
+						b.AppendLine(asm);
+                        b.AppendLine("cmp rbx, 1");
                     }
 					else if (tokenIf.expression is Token_VariableAssign variable)
 					{
@@ -100,7 +102,7 @@ public static class Generator
 			if (line.Contains(":") == false)
 			{
                 // Tabs for lines inside function
-                lines[i] = "    " + line;
+                lines[i] = "\t" + line;
 			}
 			else
 			{
