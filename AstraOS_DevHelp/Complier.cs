@@ -10,7 +10,7 @@ program_ñompiled_main()
 	int a = 0
 	int b = 10
 
-	for int i = [a..b), -1
+	for int i = [a..b], -1
 	{
 		int_to_string i buffer
 		printbuffer

@@ -82,6 +82,8 @@ int_to_string_loop:
 	jmp int_to_string_loop
 .int_to_string_exit:
 	; then
+	mov byte [rcx+rbx], 0
+
 	push rcx
 	call reverse_string
 	add rsp, 4

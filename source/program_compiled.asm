@@ -20,7 +20,6 @@ program_сompiled_main:
 	sub rsp, 4
 	mov qword rbx, [rbp-8]
 	mov [rbp-12], rbx
-	dec qword [rbp-12]
 .while_check:
 	
 	; i >= a
