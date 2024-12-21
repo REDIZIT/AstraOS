@@ -1,4 +1,6 @@
-﻿public static class Tokenizer
+﻿using System.Runtime.CompilerServices;
+
+public static class Tokenizer
 {
 	public static List<Token> Tokenize(string text, CompilationContext ctx)
 	{
@@ -6,6 +8,9 @@
 		
 		int commentDepth = 0;
 		
+		//
+		// Lexer
+		//
 		string[] lines = text.Split('\n');
 		for (int i = 0; i < lines.Length; i++)
 		{
@@ -21,16 +26,90 @@
 					if (token is Token_FunctionDeclaration functionDeclaration)
 					{
 						ctx = ctx.CreateSubContext(functionDeclaration.functionName);
+						functionDeclaration.ctx = ctx;
                     }
 					else if (token is Token_Return)
 					{
 						ctx = ctx.parent;
 					}
+					else if (token is Token_Struct structDeclaration)
+					{
+						ctx = ctx.CreateSubContext(structDeclaration.name, ctx.prefix + structDeclaration.name);
+					}
 
-                    tokens.Add(token);
+					tokens.Add(token);
                 }
 			}
 		}
+
+        //
+        // Scan for data types
+        //
+        for (int i = 0; i < tokens.Count; i++)
+		{
+            Token token = tokens[i];
+            if (token is Token_Struct tokenStruct)
+			{
+				ClassType type = new ClassType()
+				{
+					typeName = tokenStruct.name,
+					sizeInBytes = 4
+				};
+
+				// Go thro struct and register functions
+
+				int depth = 0;
+				i++;
+				while (i < tokens.Count)
+				{
+					Token structSubToken = tokens[i];
+
+					if (structSubToken is Token_BlockBegin)
+					{
+						depth++;
+					}
+					else if (structSubToken is Token_BlockEnd)
+					{
+						depth--;
+					}
+
+					if (depth <= 0) break;
+
+					if (structSubToken is Token_FunctionDeclaration tokenFunc)
+					{
+						FunctionInfo funcInfo = new FunctionInfo()
+						{
+							parent = type,
+                            name = tokenFunc.functionName,
+                            arguments = null,
+						};
+						type.functions.Add(tokenFunc.functionName, funcInfo);
+
+						tokenFunc.info = funcInfo;
+                    }
+
+					i++;
+				}
+
+                ctx.space.classes.Add(type.typeName, type);
+			}
+		}
+
+        //
+        // Resolve refs
+        //
+        foreach (Token token in tokens.Where(t => t is Token_FunctionDeclaration))
+        {
+            token.ResolveRefs();
+        }
+        foreach (Token token in tokens.Where(t => t is Token_FunctionCall))
+        {
+            token.ResolveRefs();
+        }
+  //      foreach (Token token in tokens)
+		//{
+		//	token.ResolveRefs();
+		//}
 		
 		return tokens;
 	}
@@ -38,16 +117,16 @@
 	{
 		string line = lines[lineIndex].Trim();
 		string[] words = line.Split(' ');
-		
+
 		string nextLine = "";
 		string[] nextWords = new string[0];
-		
+
 		if (lineIndex + 1 < lines.Length)
 		{
 			nextLine = lines[lineIndex + 1];
 			nextWords = nextLine.Split(' ');
 		}
-	
+
 		if (string.IsNullOrWhiteSpace(line))
 		{
 			return null;	
@@ -65,25 +144,39 @@
 		if (isCommentWaiting) return null;
 		
 		// Function
-		if (words[0].Contains("(") && words[0].Contains(")"))
+		if (line.Contains("(") && line.Contains(")"))
 		{
 			string functionName = words[0].Split('(')[0];
-			// Function declaration
-			if (nextLine.Contains("{"))
+
+            int openIndex = line.IndexOf("(");
+            int closeIndex = line.IndexOf(")");
+
+            string[] strArguments = line.Substring(openIndex + 1, closeIndex - openIndex - 1).Split(',');
+
+            // Function declaration
+            if (nextLine.Contains("{"))
 			{
-				return new Token_FunctionDeclaration()
+				Token_FunctionDeclaration tokenFunc = new Token_FunctionDeclaration(ctx, functionName);
+
+				if (strArguments.Length > 0 && strArguments[0] != "")
 				{
-					functionName = functionName
-				};
+					tokenFunc.strArguments = strArguments.ToList();
+                }
+
+                return tokenFunc;
 			}
 			// Function call
 			else
 			{
-				return new Token_FunctionCall()
-				{
-					functionName = functionName
-				};
-			}
+				Token_FunctionCall tokenFunc = new Token_FunctionCall(ctx, functionName);
+
+                if (strArguments.Length > 0 && strArguments[0] != "")
+                {
+                    tokenFunc.strArguments = strArguments.ToList();
+                }
+
+                return tokenFunc;
+            }
 		}
 		
 		// Print
@@ -127,7 +220,7 @@
             };
 		}
 
-		if (words[0] == "int" || words[0] == "string")
+		if (words[0] == "int" || words[0] == "string" || words[0] == "ptr")
 		{
 			string defaultValue = "0";
 			if (words.Length > 3)
@@ -197,6 +290,17 @@
 				isReversed = isReversed
             };
 		}
+		if (words[0] == "struct")
+		{
+			return new Token_Struct(ctx, words[1]);
+		}
+		if (words[0].StartsWith("``"))
+		{
+			return new Token_AsmBlock()
+			{
+
+			};
+        }
 		
 		if (line == "{") return new Token_BlockBegin();
 		else if (line == "}") return new Token_BlockEnd();

@@ -4,34 +4,26 @@ using System.Diagnostics;
 public static class Compiler
 {
 	public static string source = @"
-	
-program_ñompiled_main()
-{
-	int a = 0
-	int b = 10
 
-	for int i = [a..b], -1
+struct program
+{
+	main()
 	{
-		int_to_string i buffer
-		printbuffer
+		ptr my_ptr
+		my_ptr.set_value(my_ptr)
+
+		return
 	}
-
-	my_func2()
-
-	return
 }
 
-my_func1()
+struct ptr
 {
-	string str = body
-	writeline str
-	return
-}
-my_func2()
-{
-	string str = !!! exit !!!
-	writeline str
-	return
+	set_value(ptr self)
+	{
+		printbuffer
+
+		return
+	}
 }
 
 ";
@@ -50,7 +42,10 @@ my_func2()
 	
 	public static string Compile(string source)
 	{
-		CompilationContext ctx = new();
+		CompilationContext ctx = new()
+		{
+			space = new Namespace("kernel")
+		};
 
 		List<Token> tokens = Tokenizer.Tokenize(source, ctx);
 
@@ -95,7 +90,7 @@ section .text
 extern console_writeline
 extern int_to_string
 
-global program_ñompiled_main
+global program__main
 ";
 
         File.WriteAllText(settings.compilationOutputFile, header + asm);

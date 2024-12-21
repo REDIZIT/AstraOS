@@ -5,7 +5,7 @@ VisualStudioVersion = 17.8.34408.163
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AstraOS_DevHelp", "AstraOS_DevHelp.csproj", "{3BDBC3EC-9E10-412F-99A6-3C1A83B35447}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "..\Tests\Tests.csproj", "{B68363FB-1F39-41D1-A34C-43D0D762120B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "..\Tests\Tests.csproj", "{B68363FB-1F39-41D1-A34C-43D0D762120B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

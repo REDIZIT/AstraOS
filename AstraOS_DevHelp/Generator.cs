@@ -13,7 +13,7 @@ public static class Generator
 
 			if (token is Token_FunctionDeclaration functionDeclaration)
 			{
-                ctx = ctx.childrenContextByFunctionName[functionDeclaration.functionName];
+                ctx = functionDeclaration.ctx.parent.childrenContextByFunctionName[functionDeclaration.functionName];
             }
 			else if (token is Token_Return)
 			{
