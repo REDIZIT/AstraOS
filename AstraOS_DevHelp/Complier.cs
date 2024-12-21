@@ -9,8 +9,11 @@ struct program
 {
 	main()
 	{
+		int my_number = 42
+		int my_second_number = 32
+
 		ptr my_ptr
-		my_ptr.set_value(my_ptr)
+		my_ptr.set_value(my_ptr, my_number, my_second_number)
 
 		return
 	}
@@ -18,12 +21,17 @@ struct program
 
 struct ptr
 {
-	set_value(ptr self)
+	set_value(ptr self, int a, int b)
 	{
+		int_to_string b buffer
 		printbuffer
 
 		return
 	}
+}
+
+struct int
+{
 }
 
 ";

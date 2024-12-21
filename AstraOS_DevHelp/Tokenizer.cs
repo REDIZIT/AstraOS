@@ -160,7 +160,7 @@ public static class Tokenizer
 
 				if (strArguments.Length > 0 && strArguments[0] != "")
 				{
-					tokenFunc.strArguments = strArguments.ToList();
+					tokenFunc.strArguments = strArguments.Select(s => s.Trim()).ToList();
                 }
 
                 return tokenFunc;
@@ -172,7 +172,7 @@ public static class Tokenizer
 
                 if (strArguments.Length > 0 && strArguments[0] != "")
                 {
-                    tokenFunc.strArguments = strArguments.ToList();
+                    tokenFunc.strArguments = strArguments.Select(s => s.Trim()).ToList();
                 }
 
                 return tokenFunc;

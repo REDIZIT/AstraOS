@@ -17,12 +17,18 @@ global program__main
 program__main:
 	mov rbp, rsp
 	sub rsp, 4
-	mov qword [rbp-4], msg
+	mov qword [rbp-4], 42
+	sub rsp, 4
+	mov qword [rbp-8], 32
+	sub rsp, 4
+	mov qword [rbp-12], 0
 	
 	push rbp
+	push qword [rbp-12]
 	push qword [rbp-4]
+	push qword [rbp-8]
 	call ptr__set_value
-	add rsp, 4
+	add rsp, 12
 	pop rbp
 	
 	mov rsp, rbp
@@ -34,10 +40,20 @@ program__main:
 ptr__set_value:
 	mov rbp, rsp
 	
-	push qword [rbp+4]
+	; IntToString b, buffer
+	mov qword rbx, [rbp + 4]
+	push rbx
+	push buffer
+	call int_to_string
+	add rsp, 8
+	
+	push buffer
 	call console_writeline
 	add rsp, 4
 	
 	mov rsp, rbp
 	ret
+	;
+	; struct token
+	;
 	

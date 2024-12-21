@@ -18,20 +18,27 @@
 	public Namespace space;
 
 
-    public int AllocVariable(string name, int sizeInBytes, string type)
+	public int AllocVariable(string name, int sizeInBytes, string type)
 	{
 		if (sizeInBytes <= 0) throw new Exception($"Invalid argument 'sizeInBytes'. Expected value > 0, but given {sizeInBytes}");
 		if (offsetByVariableName.ContainsKey(name)) throw new Exception($"Variable with name '{name}' already allocated inside context");
 
 		int lastOffset = LastOffset - sizeInBytes;
 
-        variableNameOrdered.Add(name);
+		variableNameOrdered.Add(name);
 		offsetByVariableName.Add(name, lastOffset);
 		sizeInBytesByVariableName.Add(name, sizeInBytes);
-        typeNameByVariableName.Add(name, type);
+		typeNameByVariableName.Add(name, type);
 
-        return LastOffset;
+		return LastOffset;
 	}
+	public void AllocVariableAt(string name, ClassType type, int offset)
+	{
+        variableNameOrdered.Prepend(name);
+        offsetByVariableName.Add(name, offset);
+        sizeInBytesByVariableName.Add(name, type.sizeInBytes);
+        typeNameByVariableName.Add(name, type.typeName);
+    }
 	public void FreeVariable(string name)
 	{
 		if (variableNameOrdered.Last() != name)
