@@ -15,10 +15,6 @@ public static class Generator
 			{
                 ctx = functionDeclaration.ctx.parent.childrenContextByFunctionName[functionDeclaration.functionName];
             }
-			else if (token is Token_Return)
-			{
-                ctx = ctx.parent;
-			}
 
 			if (token is Token_If tokenIf)
 			{
@@ -116,7 +112,7 @@ public static class Generator
 		{
 			string line = lines[i];
 
-			if (line.Contains(":") == false)
+			if (line.Split(' ')[0].Contains(":") == false)
 			{
                 // Tabs for lines inside function
                 lines[i] = "\t" + line;

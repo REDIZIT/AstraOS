@@ -37,7 +37,7 @@
         variableNameOrdered.Prepend(name);
         offsetByVariableName.Add(name, offset);
         sizeInBytesByVariableName.Add(name, type.sizeInBytes);
-        typeNameByVariableName.Add(name, type.typeName);
+        typeNameByVariableName.Add(name, type.name);
     }
 	public void FreeVariable(string name)
 	{
@@ -91,14 +91,14 @@ public class Namespace
 }
 public class ClassType
 {
-	public string typeName;
+	public string name;
 	public int sizeInBytes;
 
 	public Dictionary<string, FunctionInfo> functions = new();
 
     public override string ToString()
     {
-		return "ClassType: " + typeName;
+		return "ClassType: " + name;
     }
 }
 public class FunctionInfo
@@ -106,4 +106,5 @@ public class FunctionInfo
 	public ClassType parent;
 	public string name;
 	public List<ClassType> arguments = new();
+	public List<ClassType> returns = new();
 }

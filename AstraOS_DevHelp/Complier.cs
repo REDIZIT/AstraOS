@@ -10,10 +10,13 @@ struct program
 	main()
 	{
 		int my_number = 42
-		int my_second_number = 32
+		ptr my_ptr = 753664
 
-		ptr my_ptr
-		my_ptr.set_value(my_ptr, my_number, my_second_number)
+		my_ptr.print_value(my_number)
+
+		my_number = my_ptr.get_value(my_ptr)
+
+		my_ptr.print_value(my_number)
 
 		return
 	}
@@ -21,11 +24,17 @@ struct program
 
 struct ptr
 {
-	set_value(ptr self, int a, int b)
+	get_value(ptr self): int
 	{
-		int_to_string b buffer
-		printbuffer
+		int d = 72
+	
+		return d
+	}
 
+	print_value(int number)
+	{
+		int_to_string number buffer
+		printbuffer
 		return
 	}
 }
@@ -56,13 +65,6 @@ struct int
 		};
 
 		List<Token> tokens = Tokenizer.Tokenize(source, ctx);
-
-		int i = 0;
-		while (i < tokens.Count)
-		{
-			tokens[i].Simplify(tokens, i);
-			i++;
-		}
 
         string asm = Generator.Generate(tokens, ctx);
 		

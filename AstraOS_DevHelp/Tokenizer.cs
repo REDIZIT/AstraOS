@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-
-public static class Tokenizer
+﻿public static class Tokenizer
 {
 	public static List<Token> Tokenize(string text, CompilationContext ctx)
 	{
@@ -42,6 +40,16 @@ public static class Tokenizer
 			}
 		}
 
+		//
+		// Split complex tokens for more simple
+		//
+        int j = 0;
+        while (j < tokens.Count)
+        {
+            j = tokens[j].Simplify(tokens, j);
+            j++;
+        }
+
         //
         // Scan for data types
         //
@@ -52,7 +60,7 @@ public static class Tokenizer
 			{
 				ClassType type = new ClassType()
 				{
-					typeName = tokenStruct.name,
+					name = tokenStruct.name,
 					sizeInBytes = 4
 				};
 
@@ -82,16 +90,22 @@ public static class Tokenizer
 							parent = type,
                             name = tokenFunc.functionName,
                             arguments = null,
+							returns = null,
 						};
 						type.functions.Add(tokenFunc.functionName, funcInfo);
 
 						tokenFunc.info = funcInfo;
+
+
+						// Link with return token
+						Token_Return tokenReturn = (Token_Return)tokens.Skip(i).First(t => t is Token_Return);
+						tokenReturn.functionInfo = funcInfo;
                     }
 
 					i++;
 				}
 
-                ctx.space.classes.Add(type.typeName, type);
+                ctx.space.classes.Add(type.name, type);
 			}
 		}
 
@@ -106,10 +120,6 @@ public static class Tokenizer
         {
             token.ResolveRefs();
         }
-  //      foreach (Token token in tokens)
-		//{
-		//	token.ResolveRefs();
-		//}
 		
 		return tokens;
 	}
@@ -142,41 +152,30 @@ public static class Tokenizer
 		}
 		
 		if (isCommentWaiting) return null;
+
+		if (line.Trim().StartsWith("--")) return null;
 		
 		// Function
-		if (line.Contains("(") && line.Contains(")"))
+		// declaration or call with no return
+		if (words[0].Contains("(") && line.Contains(")"))
 		{
-			string functionName = words[0].Split('(')[0];
-
-            int openIndex = line.IndexOf("(");
-            int closeIndex = line.IndexOf(")");
-
-            string[] strArguments = line.Substring(openIndex + 1, closeIndex - openIndex - 1).Split(',');
+			Token_Function tokenFunc;
+            string functionName = line.Split('(')[0];
 
             // Function declaration
             if (nextLine.Contains("{"))
 			{
-				Token_FunctionDeclaration tokenFunc = new Token_FunctionDeclaration(ctx, functionName);
-
-				if (strArguments.Length > 0 && strArguments[0] != "")
-				{
-					tokenFunc.strArguments = strArguments.Select(s => s.Trim()).ToList();
-                }
-
-                return tokenFunc;
+				tokenFunc = new Token_FunctionDeclaration(ctx, line);
 			}
 			// Function call
 			else
 			{
-				Token_FunctionCall tokenFunc = new Token_FunctionCall(ctx, functionName);
-
-                if (strArguments.Length > 0 && strArguments[0] != "")
-                {
-                    tokenFunc.strArguments = strArguments.Select(s => s.Trim()).ToList();
-                }
-
-                return tokenFunc;
+				tokenFunc = new Token_FunctionCall(ctx, functionName);
             }
+
+			tokenFunc.HandleArguments(line);
+
+			return tokenFunc;
 		}
 		
 		// Print
@@ -204,7 +203,11 @@ public static class Tokenizer
 
         if (words[0] == "return")
 		{
-			return new Token_Return();	
+			return new Token_Return()
+			{
+				ctx = ctx,
+				rawCode = string.Join(" ", words[1..])
+			};	
 		}
 		
 		if (words[0] == "exit")
@@ -246,8 +249,9 @@ public static class Tokenizer
 			{
                 return new Token_VariableAssign()
                 {
+					ctx = ctx,
                     variableName = words[0],
-                    value = value
+                    rawValue = value
                 };
             }
 		}
@@ -324,7 +328,7 @@ public static class Tokenizer
             return new Token_VariableAssign()
             {
                 variableName = words[0],
-                value = value
+                rawValue = value
             };
         }
     }

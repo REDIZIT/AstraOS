@@ -19,17 +19,34 @@ program__main:
 	sub rsp, 4
 	mov qword [rbp-4], 42
 	sub rsp, 4
-	mov qword [rbp-8], 32
-	sub rsp, 4
-	mov qword [rbp-12], 0
+	mov qword [rbp-8], 753664
 	
+	; function call: my_ptr.print_value
 	push rbp
-	push qword [rbp-12]
-	push qword [rbp-4]
-	push qword [rbp-8]
-	call ptr__set_value
-	add rsp, 12
+	push qword [rbp-4] ; arg 0, 'my_number'
+	call ptr__print_value
+	add rsp, 4
 	pop rbp
+	
+	sub rsp, 4
+	
+	; function call: my_ptr.get_value
+	push rbp
+	push qword [rbp-8] ; arg 0, 'my_ptr'
+	call ptr__get_value
+	add rsp, 4
+	pop rbp
+	
+	mov qword rbx, [rbp-12]
+	mov qword [rbp-4], rbx
+	
+	; function call: my_ptr.print_value
+	push rbp
+	push qword [rbp-4] ; arg 0, 'my_number'
+	call ptr__print_value
+	add rsp, 4
+	pop rbp
+	
 	
 	mov rsp, rbp
 	ret
@@ -37,10 +54,20 @@ program__main:
 	; struct token
 	;
 
-ptr__set_value:
+ptr__get_value:
+	mov rbp, rsp
+	sub rsp, 4
+	mov qword [rbp-4], 72
+	
+	mov qword rbx, [rbp-4]
+	mov qword [rsp+16], rbx
+	mov rsp, rbp
+	ret
+
+ptr__print_value:
 	mov rbp, rsp
 	
-	; IntToString b, buffer
+	; IntToString number, buffer
 	mov qword rbx, [rbp + 4]
 	push rbx
 	push buffer
