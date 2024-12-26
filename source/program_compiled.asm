@@ -19,25 +19,9 @@ program__main:
 	sub rsp, 4
 	mov qword [rbp-4], 42
 	sub rsp, 4
-	mov qword [rbp-8], 753664
-	
-	; function call: my_ptr.print_value
-	push rbp
-	push qword [rbp-4] ; arg 0, 'my_number'
-	call ptr__print_value
-	add rsp, 4
-	pop rbp
-	
-	sub rsp, 4
-	
-	; function call: my_ptr.get_value
-	push rbp
-	push qword [rbp-8] ; arg 0, 'my_ptr'
-	call ptr__get_value
-	add rsp, 4
-	pop rbp
-	
-	mov qword rbx, [rbp-12]
+	mov qword [rbp-8], 0
+	mov qword [rbp-8], 47
+	mov qword rbx, [rbp-8] ; my_ptr.address
 	mov qword [rbp-4], rbx
 	
 	; function call: my_ptr.print_value
@@ -53,6 +37,7 @@ program__main:
 	;
 	; struct token
 	;
+	; field: ClassType: int address
 
 ptr__get_value:
 	mov rbp, rsp

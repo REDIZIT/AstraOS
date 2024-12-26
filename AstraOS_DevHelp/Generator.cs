@@ -2,10 +2,10 @@
 
 public static class Generator
 {
-	public static string Generate(List<Token> tokens, CompilationContext mainCtx)
+	public static string Generate(List<Token> tokens, ScopeContext mainCtx)
 	{
 		StringBuilder b = new();
-		CompilationContext ctx = mainCtx;
+		ScopeContext ctx = mainCtx;
 		
 		for (int i = 0; i < tokens.Count; i++)
 		{
@@ -43,7 +43,7 @@ public static class Generator
 
 					if (tokenIf.expression is Token_MathExpression mathExpression)
 					{
-						string asm = mathExpression.Generate(ctx);
+						string asm = mathExpression.Generate();
 						b.AppendLine(asm);
                         b.AppendLine("cmp rbx, 1");
                     }
@@ -79,7 +79,7 @@ public static class Generator
 			}
 			else if (token is Token_While tokenWhile)
 			{
-				string asm = tokenWhile.Generate(ctx);
+				string asm = tokenWhile.Generate();
 
                 int blockBeginIndex = i + 1;
                 int blockEndIndex = FirstIndexOf(tokens, t => t is Token_BlockEnd, blockBeginIndex);
@@ -97,7 +97,7 @@ public static class Generator
             }
 			else
 			{
-                b.Append(tokens[i].Generate(ctx));
+                b.Append(tokens[i].Generate());
             }
 		}
 

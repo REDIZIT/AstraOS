@@ -23,7 +23,7 @@ public class MathExpressions
         return precedence.Any(kv => str.Contains(kv.Key));
     }
 
-    public static string Generate(string expression, CompilationContext ctx)
+    public static string Generate(string expression, ScopeContext ctx)
     {
         List<string> tokens = Tokenize(expression);
         List<string> tokens_rpn = ToRPN(tokens);
@@ -84,7 +84,7 @@ public class MathExpressions
 
         return output;
     }
-    public static string GenerateFromRPN(List<string> rpn, CompilationContext ctx)
+    public static string GenerateFromRPN(List<string> rpn, ScopeContext ctx)
     {
         StringBuilder b = new();
 

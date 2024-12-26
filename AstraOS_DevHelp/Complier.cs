@@ -10,11 +10,15 @@ struct program
 	main()
 	{
 		int my_number = 42
-		ptr my_ptr = 753664
+		ptr my_ptr
 
-		my_ptr.print_value(my_number)
+		--my_ptr.print_value(my_number)
 
-		my_number = my_ptr.get_value(my_ptr)
+		--my_number = my_ptr.get_value(my_ptr)
+
+		my_ptr.address = 47
+
+		my_number = my_ptr.address
 
 		my_ptr.print_value(my_number)
 
@@ -24,6 +28,8 @@ struct program
 
 struct ptr
 {
+	int address
+
 	get_value(ptr self): int
 	{
 		int d = 72
@@ -59,7 +65,7 @@ struct int
 	
 	public static string Compile(string source)
 	{
-		CompilationContext ctx = new()
+		ScopeContext ctx = new()
 		{
 			space = new Namespace("kernel")
 		};
