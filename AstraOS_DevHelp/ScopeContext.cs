@@ -1,4 +1,9 @@
-﻿public class ScopeContext
+﻿public struct VariableInfo
+{
+	public ClassType type;
+}
+
+public class ScopeContext
 {
 	public int LastOffset => offsetByVariableName.Count == 0 ? 0 : offsetByVariableName[variableNameOrdered.Last()];
 
@@ -7,8 +12,8 @@
 	public Dictionary<string, string> typeNameByVariableName = new();
 	public List<string> variableNameOrdered = new();
 
+	public int parentRelatedOffset;
 	public ScopeContext parent;
-	public Dictionary<string, ScopeContext> childrenContextByFunctionName = new();
 
 	public string prefix = null;
 
@@ -57,7 +62,18 @@
     }
     public int GetIntRSPIndex(string variableName)
     {
-		return offsetByVariableName[variableName];
+        if (offsetByVariableName.TryGetValue(variableName, out int offset))
+		{
+			return offset + parentRelatedOffset;
+		}
+		else if (parent != null)
+		{
+			return parent.GetIntRSPIndex(variableName);
+		}
+		else
+		{
+			throw new Exception($"Failed to get RSP index. Variable '{variableName}' is out of scope.");
+		}
     }
 	public string FormatRSP(int offset)
 	{
@@ -72,6 +88,25 @@
         return offsetByVariableName[variableName];
     }
 
+	public VariableInfo GetVariable(string name)
+	{
+		if (typeNameByVariableName.TryGetValue(name, out string typeName))
+		{
+			return new VariableInfo()
+			{
+				type = space.classes[typeName]
+			};
+		}
+		else if (parent != null)
+		{
+			return parent.GetVariable(name);
+		}
+		else
+		{
+			throw new Exception($"There is no variable with name '{name}' inside this scope and any parent. Seems, variable is out of scope.");
+		}
+    }
+
 	public ScopeContext CreateSubContext(string functionName, string prefix = null)
 	{
 		ScopeContext ctx = new()
@@ -79,9 +114,14 @@
 			parent = this,
 			space = space,
 			prefix = prefix,
+            parentRelatedOffset = LastOffset,
         };
-		childrenContextByFunctionName.Add(functionName, ctx);
 		return ctx;
+    }
+
+	public string NextUniquePostfix()
+	{
+		return space.NextUniquePostfix();
     }
 }
 
@@ -90,9 +130,17 @@ public class Namespace
 	public string name;
 	public Dictionary<string, ClassType> classes = new();
 
+	private int uniquePostfixNumber;
+
     public Namespace(string name)
     {
 		this.name = name;
+    }
+
+	public string NextUniquePostfix()
+	{
+		uniquePostfixNumber++;
+		return "_" + uniquePostfixNumber;
     }
 }
 public class ClassType

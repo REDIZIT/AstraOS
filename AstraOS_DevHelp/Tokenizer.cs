@@ -14,11 +14,15 @@
 		//
 		DiscoverTypes(tokens, ctx.space);
 
-
         //
         // Split complex tokens for more simple
         //
-        SplitTokens(tokens);
+        DissolveSugar(tokens);
+
+        //
+        // Calculate local stack offsets for local variables
+        //
+        RegisterLocalVariables(tokens, ctx);
 
         //
         // Resolve refs
@@ -28,12 +32,34 @@
         return tokens;
 	}
 
-    private static void SplitTokens(List<Token> tokens)
+    private static void RegisterLocalVariables(List<Token> tokens, ScopeContext rootScope)
+    {
+        ScopeContext prevCtx = rootScope;
+        foreach (Token token in tokens)
+        {
+            if (token is Token_VariableDeclaration token_var)
+            {
+                token_var.RegisterLocalVariable();
+            }
+            else if (token is Token_BlockBegin)
+            {
+                int delta = prevCtx.LastOffset;
+                token.ctx.parentRelatedOffset = delta;
+                prevCtx = token.ctx;
+            }
+            else if (token is Token_BlockEnd)
+            {
+                prevCtx = prevCtx.parent;
+            }
+        }
+    }
+
+    private static void DissolveSugar(List<Token> tokens)
 	{
         int j = 0;
         while (j < tokens.Count)
         {
-            j = tokens[j].Simplify(tokens, j);
+            j = tokens[j].DissolveSugar(tokens, j);
             j++;
         }
     }
@@ -49,6 +75,7 @@
         for (int i = 0; i < tokens.Count; i++)
         {
             Token token = tokens[i];
+
             if (token is Token_Struct tokenStruct)
             {
                 ClassType type = new ClassType()
@@ -99,7 +126,7 @@
                         FieldInfo info = new FieldInfo()
                         {
                             parent = type,
-                            name = tokenField.name,
+                            name = tokenField.name
                         };
                         type.fields.Add(info);
                         type.fieldInfoByName.Add(info.name, info);

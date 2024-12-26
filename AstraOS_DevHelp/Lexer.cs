@@ -1,43 +1,92 @@
 ﻿public static class Lexer
 {
-    public static void RawCodeToTokens(string text, ScopeContext ctx, List<Token> listToFill)
+    public static void RawCodeToTokens(string text, ScopeContext currentScope, List<Token> listToFill)
     {
         int commentDepth = 0;
+        Token_AsmBlock currentAsmBlock = null;
 
         string[] lines = text.Split('\n');
         for (int i = 0; i < lines.Length; i++)
         {
-            Token token = TokenizeLine(lines, i, commentDepth > 0, ctx);
+            Token token = TokenizeLine(lines, i, commentDepth > 0, currentAsmBlock, currentScope);
             if (token != null)
             {
-                if (token is Token_Comment comment)
+                if (token is Token_AsmBlock tokenAsmBlock)
+                {
+                    if (currentAsmBlock == null)
+                    {
+                        currentAsmBlock = tokenAsmBlock;
+                    }
+                    else
+                    {
+                        currentAsmBlock.ctx = currentScope;
+                        listToFill.Add(currentAsmBlock);
+
+                        currentAsmBlock = null;
+                    }
+                }
+                else if (token is Token_Comment comment)
                 {
                     commentDepth += comment.isClosing ? -1 : 1;
                 }
                 else if (commentDepth <= 0)
                 {
-                    if (token is Token_FunctionDeclaration functionDeclaration)
+                    if (token is Token_BlockEnd)
                     {
-                        ctx = ctx.CreateSubContext(functionDeclaration.functionName, ctx.prefix + "__fn_" + functionDeclaration.functionName);
-                        functionDeclaration.ctx = ctx;
+                        currentScope = currentScope.parent;
                     }
-                    else if (token is Token_BlockEnd)
+                    else if (token is Token_BlockBegin)
                     {
-                        ctx = ctx.parent;
-                    }
-                    else if (token is Token_Struct structDeclaration)
-                    {
-                        ctx = ctx.CreateSubContext(structDeclaration.name, ctx.prefix + "__type_" + structDeclaration.name);
+                        Token lastToken = listToFill.Last();
+
+                        string contextName = "unknown";
+                        if (lastToken is Token_FunctionDeclaration token_func)
+                        {
+                            contextName = "fn_" + token_func.functionName;
+                        }
+                        else if (lastToken is Token_Struct token_struct)
+                        {
+                            contextName = "struct_" + token_struct.name;
+                        }
+                        else if (lastToken is Token_While token_while)
+                        {
+                            contextName = "while";
+                        }
+                        else if (lastToken is Token_For token_for)
+                        {
+                            contextName = "for";
+                        }
+                        else if (lastToken is Token_If token_if)
+                        {
+                            contextName = "if";
+                        }
+                        
+                        currentScope = currentScope.CreateSubContext(contextName, currentScope.prefix + "_" + contextName);
                     }
 
-                    token.ctx = ctx;
+                    token.ctx = currentScope;
                     listToFill.Add(token);
+                }
+            }
+        }
+
+
+        for (int i = 1; i < listToFill.Count; i++)
+        {
+            Token prevToken = listToFill[i - 1];
+            Token token = listToFill[i];
+
+            if (token is Token_BlockBegin)
+            {
+                if (prevToken is Token_FunctionDeclaration || prevToken is Token_Struct)
+                {
+                    prevToken.ctx = token.ctx;
                 }
             }
         }
     }
 
-    private static Token TokenizeLine(string[] lines, int lineIndex, bool isCommentWaiting, ScopeContext ctx)
+    private static Token TokenizeLine(string[] lines, int lineIndex, bool isCommentWaiting, Token_AsmBlock asmBlock, ScopeContext ctx)
     {
         string line = lines[lineIndex].Trim();
         string[] words = line.Split(' ');
@@ -68,6 +117,19 @@
         if (isCommentWaiting) return null;
 
         if (line.Trim().StartsWith("--")) return null;
+
+
+        if (words[0].StartsWith("```"))
+        {
+            return new Token_AsmBlock();
+        }
+
+        if (asmBlock != null)
+        {
+            asmBlock.text += line + "\n";
+            return null;
+        }
+
 
         // Function
         // declaration or call with no return
@@ -212,13 +274,7 @@
         {
             return new Token_Struct(ctx, words[1]);
         }
-        if (words[0].StartsWith("``"))
-        {
-            return new Token_AsmBlock()
-            {
-
-            };
-        }
+        
 
         if (line == "{") return new Token_BlockBegin();
         else if (line == "}") return new Token_BlockEnd();

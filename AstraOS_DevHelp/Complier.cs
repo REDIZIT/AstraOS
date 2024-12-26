@@ -12,15 +12,18 @@ struct program
 		int my_number = 42
 		ptr my_ptr
 
-		--my_ptr.print_value(my_number)
 
-		--my_number = my_ptr.get_value(my_ptr)
+		for int y = [0..7)
+		{
+			for int x = [0..3)
+			{
+				int temp = 753664 + x * 2 + y * 2 * 80
 
-		my_ptr.address = 47
-
-		my_number = my_ptr.address
-
-		my_ptr.print_value(my_number)
+				my_ptr.address = temp
+				my_ptr.set_value(my_ptr, 48)
+			}
+		}
+		
 
 		return
 	}
@@ -30,17 +33,14 @@ struct ptr
 {
 	int address
 
-	get_value(ptr self): int
+	set_value(ptr self, int value)
 	{
-		int d = 72
-	
-		return d
-	}
-
-	print_value(int number)
-	{
-		int_to_string number buffer
-		printbuffer
+		```
+		mov rbx, [self]
+		mov rcx, [value]
+		mov qword [rbx], rcx
+		mov qword [rbx+1], 0x02
+		```
 		return
 	}
 }

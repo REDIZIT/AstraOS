@@ -20,16 +20,96 @@ program__main:
 	mov qword [rbp-4], 42
 	sub rsp, 4
 	mov qword [rbp-8], 0
-	mov qword [rbp-8], 47
-	mov qword rbx, [rbp-8] ; my_ptr.address
-	mov qword [rbp-4], rbx
+	sub rsp, 4
+	mov qword [rbp-12], 0
+.while_check_1:
 	
-	; function call: my_ptr.print_value
+	; y < 7
+	push qword [rbp-12]
+	push qword 7
+	pop rcx
+	pop rbx
+	cmp rbx, rcx
+	setl dl
+	movzx rdx, dl
+	mov rbx, rdx
+	push qword rbx
+	pop rbx
+	
+	cmp rbx, 0
+	jle .while_exit_1
+	sub rsp, 4
+	mov qword [rbp-16], 0
+.while_check_2:
+	
+	; x < 3
+	push qword [rbp-16]
+	push qword 3
+	pop rcx
+	pop rbx
+	cmp rbx, rcx
+	setl dl
+	movzx rdx, dl
+	mov rbx, rdx
+	push qword rbx
+	pop rbx
+	
+	cmp rbx, 0
+	jle .while_exit_2
+	
+	; 753664 + x * 2 + y * 2 * 80
+	push qword 753664
+	push qword [rbp-16]
+	push qword 2
+	pop rcx
+	pop rbx
+	imul rbx, rcx
+	push qword rbx
+	pop rcx
+	pop rbx
+	add rbx, rcx
+	push qword rbx
+	push qword [rbp-12]
+	push qword 2
+	pop rcx
+	pop rbx
+	imul rbx, rcx
+	push qword rbx
+	push qword 80
+	pop rcx
+	pop rbx
+	imul rbx, rcx
+	push qword rbx
+	pop rcx
+	pop rbx
+	add rbx, rcx
+	push qword rbx
+	pop rbx
+	
+	sub rsp, 4
+	mov qword [rbp-8], rbx
+	mov qword rbx, [rbp-8]
+	mov qword [rbp-8], rbx
+	
+	; function call: my_ptr.set_value
 	push rbp
-	push qword [rbp-4] ; arg 0, 'my_number'
-	call ptr__print_value
-	add rsp, 4
+	push qword [rbp-8] ; arg 0, 'my_ptr'
+	push qword 48 ; arg 1, '48'
+	call ptr__set_value
+	add rsp, 8
 	pop rbp
+	
+	
+	inc qword [rbp-16]
+	
+	jmp .while_check_2
+.while_exit_2:
+	
+	
+	inc qword [rbp-12]
+	
+	jmp .while_check_1
+.while_exit_1:
 	
 	
 	mov rsp, rbp
@@ -39,29 +119,12 @@ program__main:
 	;
 	; field: ClassType: int address
 
-ptr__get_value:
+ptr__set_value:
 	mov rbp, rsp
-	sub rsp, 4
-	mov qword [rbp-4], 72
-	
-	mov qword rbx, [rbp-4]
-	mov qword [rsp+16], rbx
-	mov rsp, rbp
-	ret
-
-ptr__print_value:
-	mov rbp, rsp
-	
-	; IntToString number, buffer
-	mov qword rbx, [rbp + 4]
-	push rbx
-	push buffer
-	call int_to_string
-	add rsp, 8
-	
-	push buffer
-	call console_writeline
-	add rsp, 4
+	mov rbx, [rbp+8]
+	mov rcx, [rbp+4]
+	mov qword [rbx], rcx
+	mov qword [rbx+1], 0x02
 	
 	mov rsp, rbp
 	ret

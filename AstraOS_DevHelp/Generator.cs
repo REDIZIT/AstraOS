@@ -11,11 +11,6 @@ public static class Generator
 		{
 			Token token = tokens[i];
 
-			if (token is Token_FunctionDeclaration functionDeclaration)
-			{
-                ctx = functionDeclaration.ctx.parent.childrenContextByFunctionName[functionDeclaration.functionName];
-            }
-
 			if (token is Token_If tokenIf)
 			{
 				int blockBeginIndex = i + 1;
@@ -82,7 +77,7 @@ public static class Generator
 				string asm = tokenWhile.Generate();
 
                 int blockBeginIndex = i + 1;
-                int blockEndIndex = FirstIndexOf(tokens, t => t is Token_BlockEnd, blockBeginIndex);
+				int blockEndIndex = GetBlockEndIndex(tokens, blockBeginIndex);
 
                 Token blockBegin = tokens[blockBeginIndex];
                 Token blockEnd = tokens[blockEndIndex];
@@ -139,4 +134,24 @@ public static class Generator
 		}
 		return -1;
 	}
+
+	private static int GetBlockEndIndex(List<Token> tokens, int startIndex)
+	{
+		int depth = 0;
+
+        for (int i = startIndex; i < tokens.Count; i++)
+        {
+            Token token = tokens[i];
+			if (token is Token_BlockBegin)
+			{
+                depth++;
+            }
+			else if (token is Token_BlockEnd)
+			{
+				depth--;
+				if (depth == 0) return i;
+			}
+        }
+        return -1;
+    }
 }
