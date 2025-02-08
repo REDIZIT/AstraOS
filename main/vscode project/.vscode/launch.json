@@ -1,0 +1,21 @@
+{
+	"version": "1.0.0",
+	"configurations": [
+		{
+			"name": "Compile+Simulate NASM",
+			"type": "coreclr",
+			"request": "launch",
+			"preLaunchTask": "Compile Astra to Simulator NASM",
+			"program": "C:/Users/REDIZIT/Documents/GitHub/AstraNASM/nasm simulator/bin/Debug/net8.0/nasm simulator.exe",
+			"args": ["run"],
+			"cwd": "${workspaceFolder}",
+			"stopAtEntry": false,
+			"console": "internalConsole",
+			"logging": {
+				"moduleLoad": false,
+				"processExit": false,
+			}
+		}
+	]
+  }
+  

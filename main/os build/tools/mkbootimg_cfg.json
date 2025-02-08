@@ -1,0 +1,8 @@
+{
+	"config": "tools/bootboot_env.txt",
+	"initrd": { "type": "tar", "gzip": false, "directory": "tools/boot" },
+	"partitions": [
+        { "type": "boot", "size": 16 }
+    ]
+
+}

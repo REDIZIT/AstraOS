@@ -1,0 +1,47 @@
+class Console
+{
+	public SetPixel(int x, int y, int c)
+	{
+		ptr fb = 0xfffffffffc000000
+		fb.shift(x * 4 + y * 3200)
+		fb.set(c)
+
+		return
+	}
+	public PutChar(short char, int cx, int cy)
+	{
+		ptr _binary_src_font_psf_start -- will be injected by compiler
+
+		ptr fontStart = _binary_src_font_psf_start + 32
+		ptr screenStart = 0xfffffffffc000000 + 4 * (cx * 8 + cy * 16 * 800)
+
+		fontStart.shift(char * 0x10)
+
+		for (int y = 0; y < 16; y = y + 1)
+		{
+			byte row = fontStart.get()
+			fontStart.shift(1)
+
+			byte mask = 1 << 7
+
+			for (int x = 0; x < 8; x = x + 1)
+			{
+				int c = 0x000dbc79
+
+				if (row & mask)
+				{
+					c = 0x00ffffff
+				}
+
+				screenStart.set(c)
+				screenStart.shift(4)
+
+				mask = mask >> 1
+			}
+
+			screenStart.shift(3168)
+		}
+
+		return
+	}
+}
