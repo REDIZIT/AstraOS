@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "AstraOS_DevHelp": {
-      "commandName": "Project",
-      "hotReloadEnabled": false
-    }
-  }
-}
